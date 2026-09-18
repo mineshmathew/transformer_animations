@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer Animations</title>
+<style>
+:root{
+  --bg:#0F172A;--bg2:#1E293B;--bg3:#334155;
+  --txt:#E2E8F0;--txt2:#94A3B8;
+  --acc:#38BDF8;--grn:#4ADE80;--pur:#A78BFA;
+  --bdr:rgba(255,255,255,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 24px 60px;
+}
+.hero{text-align:center;max-width:680px;margin-bottom:48px;}
+.hero h1{font-size:2rem;font-weight:800;color:var(--acc);line-height:1.2;margin-bottom:12px;}
+.hero p{font-size:1rem;color:var(--txt2);line-height:1.6;}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:24px;
+  width:100%;max-width:900px;
+}
+.card{
+  background:var(--bg2);
+  border:1px solid var(--bdr);
+  border-radius:16px;
+  padding:28px;
+  display:flex;flex-direction:column;gap:14px;
+  transition:.2s;
+  text-decoration:none;
+  color:inherit;
+}
+.card:hover{border-color:rgba(56,189,248,.4);transform:translateY(-2px);}
+.card-icon{font-size:2rem;}
+.card-badge{
+  display:inline-block;
+  font-size:.68rem;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 10px;border-radius:4px;
+  width:fit-content;
+}
+.badge-seq{background:rgba(74,222,128,.12);color:var(--grn);}
+.badge-par{background:rgba(124,58,237,.15);color:var(--pur);}
+.card h2{font-size:1.1rem;font-weight:700;}
+.card p{font-size:.85rem;color:var(--txt2);line-height:1.55;}
+.steps-pill{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;
+}
+.pill{
+  font-size:.72rem;padding:2px 8px;border-radius:4px;
+  background:var(--bg3);color:var(--txt2);
+  border:1px solid var(--bdr);
+}
+.cta{
+  margin-top:auto;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.85rem;font-weight:600;color:var(--acc);
+}
+footer{
+  margin-top:60px;font-size:.78rem;color:var(--txt2);text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Transformer Decoder Animations</h1>
+  <p>Step-by-step interactive visualisations of how a decoder-only transformer
+     processes a prompt — from prefill through autoregressive and parallel decoding.</p>
+</div>
+
+<div class="grid">
+
+  <a class="card" href="decoder_animation.html">
+    <div class="card-icon">🔁</div>
+    <span class="card-badge badge-seq">Sequential</span>
+    <h2>Autoregressive Decoding</h2>
+    <p>Watch prefill build a 6&times;6 causal attention matrix and KV cache, then
+       see tokens generated one-by-one: <em>"Get state and RTO, KL 6"</em>
+       &rarr; <em>"Kerala and Idukki"</em>.</p>
+    <div class="steps-pill">
+      <span class="pill">Prefill</span>
+      <span class="pill">KV Cache</span>
+      <span class="pill">Causal Attention</span>
+      <span class="pill">Softmax</span>
+      <span class="pill">Autoregressive</span>
+    </div>
+    <span class="cta">Open animation &rarr;</span>
+  </a>
+
+  <a class="card" href="parallel_decode_animation.html">
+    <div class="card-icon">⚡</div>
+    <span class="card-badge badge-par">Parallel</span>
+    <h2>Parallel Constrained Decoding</h2>
+    <p>Same prompt, two decoder heads running <em>simultaneously</em> after
+       prefill — each constrained to its own vocabulary via logit masking.
+       State &rarr; <em>Kerala</em> &amp; RTO &rarr; <em>idukki</em> in one step.</p>
+    <div class="steps-pill">
+      <span class="pill">Shared KV Cache</span>
+      <span class="pill">Logit Masking</span>
+      <span class="pill">Constrained Softmax</span>
+      <span class="pill">Parallel Heads</span>
+    </div>
+    <span class="cta">Open animation &rarr;</span>
+  </a>
+
+</div>
+
+<footer>Built with vanilla HTML &amp; Canvas &bull; No dependencies</footer>
+
+</body>
+</html>
