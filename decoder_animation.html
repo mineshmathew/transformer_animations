@@ -357,50 +357,72 @@ body {
 </div>
 
 <script>
-const INP = ['what','is','2+2'];
-const GEN = ['2+2','is','4'];
+const INP = ['what','is','the','score'];
+const GEN = ['the','score','is','72'];
 const ALL = [...INP,...GEN];
 
-const A3 = [
-  [1.00, 0.00, 0.00],
-  [0.35, 0.65, 0.00],
-  [0.20, 0.30, 0.50]
-];
+// Prefill: 4×4 lower-triangular causal mask
 const A4 = [
   [1.00, 0.00, 0.00, 0.00],
-  [0.35, 0.65, 0.00, 0.00],
-  [0.20, 0.30, 0.50, 0.00],
-  [0.15, 0.20, 0.45, 0.20]
+  [0.32, 0.68, 0.00, 0.00],
+  [0.22, 0.28, 0.50, 0.00],
+  [0.12, 0.22, 0.28, 0.38]
 ];
+// Decode step 1 — "the"(gen) at pos 4 attends to all
 const A5 = [
   [1.00, 0.00, 0.00, 0.00, 0.00],
-  [0.35, 0.65, 0.00, 0.00, 0.00],
-  [0.20, 0.30, 0.50, 0.00, 0.00],
-  [0.15, 0.20, 0.45, 0.20, 0.00],
-  [0.08, 0.12, 0.30, 0.38, 0.12]
+  [0.32, 0.68, 0.00, 0.00, 0.00],
+  [0.22, 0.28, 0.50, 0.00, 0.00],
+  [0.12, 0.22, 0.28, 0.38, 0.00],
+  [0.10, 0.18, 0.42, 0.24, 0.06]
 ];
+// Decode step 2 — "score"(gen) at pos 5
 const A6 = [
   [1.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-  [0.35, 0.65, 0.00, 0.00, 0.00, 0.00],
-  [0.20, 0.30, 0.50, 0.00, 0.00, 0.00],
-  [0.15, 0.20, 0.45, 0.20, 0.00, 0.00],
-  [0.08, 0.12, 0.30, 0.38, 0.12, 0.00],
-  [0.05, 0.08, 0.28, 0.40, 0.12, 0.07]
+  [0.32, 0.68, 0.00, 0.00, 0.00, 0.00],
+  [0.22, 0.28, 0.50, 0.00, 0.00, 0.00],
+  [0.12, 0.22, 0.28, 0.38, 0.00, 0.00],
+  [0.10, 0.18, 0.42, 0.24, 0.06, 0.00],
+  [0.07, 0.14, 0.28, 0.35, 0.12, 0.04]
+];
+// Decode step 3 — "is"(gen) at pos 6
+const A7 = [
+  [1.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.32, 0.68, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.22, 0.28, 0.50, 0.00, 0.00, 0.00, 0.00],
+  [0.12, 0.22, 0.28, 0.38, 0.00, 0.00, 0.00],
+  [0.10, 0.18, 0.42, 0.24, 0.06, 0.00, 0.00],
+  [0.07, 0.14, 0.28, 0.35, 0.12, 0.04, 0.00],
+  [0.05, 0.10, 0.18, 0.22, 0.26, 0.14, 0.05]
+];
+// Decode step 4 — "72"(gen) at pos 7
+const A8 = [
+  [1.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.32, 0.68, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.22, 0.28, 0.50, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.12, 0.22, 0.28, 0.38, 0.00, 0.00, 0.00, 0.00],
+  [0.10, 0.18, 0.42, 0.24, 0.06, 0.00, 0.00, 0.00],
+  [0.07, 0.14, 0.28, 0.35, 0.12, 0.04, 0.00, 0.00],
+  [0.05, 0.10, 0.18, 0.22, 0.26, 0.14, 0.05, 0.00],
+  [0.04, 0.07, 0.14, 0.22, 0.20, 0.18, 0.12, 0.03]
 ];
 
-const KV_LABELS = ['what','is','2+2','2+2↑','is↑','4↑'];
+const KV_LABELS = ['what','is','the','score','the↑','score↑','is↑','72↑'];
 
 const SM_PREFILL = [
-  {tok:'2+2',p:.52,top:true},{tok:'is',p:.2},{tok:'=',p:.14},{tok:'what',p:.07},{tok:'…',p:.07}
+  {tok:'the',p:.48,top:true},{tok:'a',p:.22},{tok:'an',p:.12},{tok:'this',p:.11},{tok:'…',p:.07}
 ];
 const SM_D1 = [
-  {tok:'is',p:.58,top:true},{tok:'=',p:.18},{tok:'the',p:.12},{tok:'are',p:.08},{tok:'…',p:.04}
+  {tok:'score',p:.62,top:true},{tok:'result',p:.18},{tok:'game',p:.09},{tok:'ans',p:.07},{tok:'…',p:.04}
 ];
 const SM_D2 = [
-  {tok:'4',p:.71,top:true},{tok:'five',p:.12},{tok:'three',p:.09},{tok:'6',p:.05},{tok:'…',p:.03}
+  {tok:'is',p:.71,top:true},{tok:'was',p:.12},{tok:'=',p:.09},{tok:'stands',p:.05},{tok:'…',p:.03}
 ];
 const SM_D3 = [
-  {tok:'[EOS]',p:.82,top:true},{tok:'.',p:.09},{tok:',',p:.05},{tok:'!',p:.03},{tok:'…',p:.01}
+  {tok:'72',p:.55,top:true},{tok:'100',p:.18},{tok:'95',p:.13},{tok:'80',p:.09},{tok:'…',p:.05}
+];
+const SM_D4 = [
+  {tok:'[EOS]',p:.79,top:true},{tok:'.',p:.10},{tok:'pts',p:.06},{tok:',',p:.03},{tok:'…',p:.02}
 ];
 
 const STEPS = [
@@ -414,67 +436,67 @@ const STEPS = [
   },
   {
     id:1, phase:'prefill', num:1,
-    toks:['what','is','2+2'], types:['inp','inp','inp'], curTok:-1,
+    toks:['what','is','the','score'], types:['inp','inp','inp','inp'], curTok:-1,
     blks:['embed'], attn:null, hlRow:-1,
     kv:0, newKvIdx:[],
     pred:null, sm:null,
-    expl:`<span class="hp">Prefill begins.</span> All 3 input tokens — <strong>"what"</strong>, <strong>"is"</strong>, <strong>"2+2"</strong> — enter simultaneously. Each token ID is looked up in the embedding matrix, and positional encodings (sin/cos or learned) are added at positions 0, 1, 2.`
+    expl:`<span class="hp">Prefill begins.</span> All 4 input tokens — <strong>"what"</strong>, <strong>"is"</strong>, <strong>"the"</strong>, <strong>"score"</strong> — enter simultaneously. Each token ID is looked up in the embedding matrix, and positional encodings are added at positions 0, 1, 2, 3.`
   },
   {
     id:2, phase:'prefill', num:2,
-    toks:['what','is','2+2'], types:['inp','inp','inp'], curTok:-1,
+    toks:['what','is','the','score'], types:['inp','inp','inp','inp'], curTok:-1,
     blks:['qkv'], attn:null, hlRow:-1,
     kv:0, newKvIdx:[],
     pred:null, sm:null,
-    expl:`Three linear projections run in parallel: <span class="hq">Q</span> = W<sub>Q</sub>·x, <span class="hk">K</span> = W<sub>K</sub>·x, <span class="hv">V</span> = W<sub>V</sub>·x. Each of the 3 token embeddings produces its own <span class="hq">Query</span>, <span class="hk">Key</span>, and <span class="hv">Value</span> vectors — all computed in a single batched matrix multiply.`
+    expl:`Four sets of linear projections run in parallel: <span class="hq">Q</span> = W<sub>Q</sub>·x, <span class="hk">K</span> = W<sub>K</sub>·x, <span class="hv">V</span> = W<sub>V</sub>·x. Each of the 4 token embeddings produces its own <span class="hq">Query</span>, <span class="hk">Key</span>, and <span class="hv">Value</span> vectors — all in a single batched matrix multiply.`
   },
   {
     id:3, phase:'prefill', num:3,
-    toks:['what','is','2+2'], types:['inp','inp','inp'], curTok:-1,
-    blks:['attn','n1'], attn:A3, hlRow:-1,
-    kv:3, newKvIdx:[0,1,2],
+    toks:['what','is','the','score'], types:['inp','inp','inp','inp'], curTok:-1,
+    blks:['attn','n1'], attn:A4, hlRow:-1,
+    kv:4, newKvIdx:[0,1,2,3],
     pred:null, sm:null,
-    expl:`<strong>Causal self-attention</strong>: scores = softmax(<span class="hq">Q</span><span class="hk">K</span><sup>T</sup>/√d) with a lower-triangular mask — each token only sees itself and earlier tokens. All 3 <span class="hk">K</span> and <span class="hv">V</span> vectors are stored in the <strong>KV cache</strong>. They will never be recomputed — during decoding, new tokens simply read from here.`
+    expl:`<strong>Causal self-attention</strong>: scores = softmax(<span class="hq">Q</span><span class="hk">K</span><sup>T</sup>/√d) with a lower-triangular mask — each token only attends to itself and earlier tokens. All 4 <span class="hk">K</span> and <span class="hv">V</span> vectors are stored in the <strong>KV cache</strong>. They will never be recomputed during decoding.`
   },
   {
     id:4, phase:'prefill', num:4,
-    toks:['what','is','2+2'], types:['inp','inp','inp'], curTok:2,
-    blks:['ffn','n2','out'], attn:A3, hlRow:2,
-    kv:3, newKvIdx:[],
-    pred:'2+2', sm:SM_PREFILL,
-    expl:`The attention output feeds through the <strong>FFN</strong> (expand → GELU → project) and layer norm. Only the <strong>last token's output</strong> (pos 2, "2+2") is used to predict the next token. Applying softmax over all vocabulary logits, the model chooses <strong>"2+2"</strong> as the first generated token.`
+    toks:['what','is','the','score'], types:['inp','inp','inp','inp'], curTok:3,
+    blks:['ffn','n2','out'], attn:A4, hlRow:3,
+    kv:4, newKvIdx:[],
+    pred:'the', sm:SM_PREFILL,
+    expl:`The attention output feeds through the <strong>FFN</strong> (expand → GELU → project) and layer norm. Only the <strong>last token's output</strong> (pos 3, "score") is used to predict the next token. Softmax over vocabulary logits — the model chooses <strong>"the"</strong> as the first generated token.`
   },
   {
     id:5, phase:'decode', num:5,
-    toks:['what','is','2+2','2+2'], types:['inp','inp','inp','gen'], curTok:3,
-    blks:['embed','qkv','attn','n1'], attn:A4, hlRow:3,
-    kv:4, newKvIdx:[3],
-    pred:null, sm:null,
-    expl:`<span class="hd">Decode step 1.</span> Generated <strong>"2+2"</strong> is appended at pos 3. Its embedding is computed, producing a new <span class="hq">Q</span><sub>3</sub>, <span class="hk">K</span><sub>3</sub>, <span class="hv">V</span><sub>3</sub>. The new <span class="hq">Q</span><sub>3</sub> attends to <em>all 4 cached keys</em> (highlighted row). <span class="hk">K</span><sub>3</sub> and <span class="hv">V</span><sub>3</sub> are appended to the KV cache. No recomputation of positions 0–2.`
+    toks:['what','is','the','score','the'], types:['inp','inp','inp','inp','gen'], curTok:4,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A5, hlRow:4,
+    kv:5, newKvIdx:[4],
+    pred:'score', sm:SM_D1,
+    expl:`<span class="hd">Decode step 1.</span> Generated <strong>"the"</strong> enters at pos 4. Its <span class="hq">Q</span><sub>4</sub> attends to all 5 cached keys (highlighted row). New <span class="hk">K</span><sub>4</sub>, <span class="hv">V</span><sub>4</sub> are added to the cache. Through FFN + output head the model predicts <strong>"score"</strong>.`
   },
   {
     id:6, phase:'decode', num:6,
-    toks:['what','is','2+2','2+2'], types:['inp','inp','inp','gen'], curTok:3,
-    blks:['ffn','n2','out'], attn:A4, hlRow:3,
-    kv:4, newKvIdx:[],
-    pred:'is', sm:SM_D1,
-    expl:`The attended output for pos 3 continues through <strong>FFN + layer norm + output head</strong>. The model predicts <strong>"is"</strong> — forming "2+2 <strong>is</strong> 4". The KV cache already holds all we need for the next step.`
+    toks:['what','is','the','score','the','score'], types:['inp','inp','inp','inp','gen','gen'], curTok:5,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A6, hlRow:5,
+    kv:6, newKvIdx:[5],
+    pred:'is', sm:SM_D2,
+    expl:`<span class="hd">Decode step 2.</span> <strong>"score"</strong> at pos 5 attends to all 6 cached positions. The model is building "the score …" and predicts <strong>"is"</strong> as the next word.`
   },
   {
     id:7, phase:'decode', num:7,
-    toks:['what','is','2+2','2+2','is'], types:['inp','inp','inp','gen','gen'], curTok:4,
-    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A5, hlRow:4,
-    kv:5, newKvIdx:[4],
-    pred:'4', sm:SM_D2,
-    expl:`<span class="hd">Decode step 2.</span> <strong>"is"</strong> at pos 4 attends to all 5 cached positions. Through FFN and the output head the model predicts <strong>"4"</strong> — the answer to "what is 2+2".`
+    toks:['what','is','the','score','the','score','is'], types:['inp','inp','inp','inp','gen','gen','gen'], curTok:6,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A7, hlRow:6,
+    kv:7, newKvIdx:[6],
+    pred:'72', sm:SM_D3,
+    expl:`<span class="hd">Decode step 3.</span> <strong>"is"</strong> at pos 6 attends to all 7 cached positions. The model has seen "the score is …" and predicts the number — <strong>"72"</strong>.`
   },
   {
     id:8, phase:'decode', num:8,
-    toks:['what','is','2+2','2+2','is','4'], types:['inp','inp','inp','gen','gen','gen'], curTok:5,
-    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A6, hlRow:5,
-    kv:6, newKvIdx:[5],
-    pred:'[EOS]', sm:SM_D3,
-    expl:`<span class="hd">Decode step 3.</span> <strong>"4"</strong> at pos 5 attends to all 6 cached positions. The model predicts <strong>[EOS]</strong> — end of sequence. Generation complete! Full response: <strong>"2+2 is 4"</strong> ✓`
+    toks:['what','is','the','score','the','score','is','72'], types:['inp','inp','inp','inp','gen','gen','gen','gen'], curTok:7,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A8, hlRow:7,
+    kv:8, newKvIdx:[7],
+    pred:'[EOS]', sm:SM_D4,
+    expl:`<span class="hd">Decode step 4.</span> <strong>"72"</strong> at pos 7 attends to all 8 cached positions. The model predicts <strong>[EOS]</strong> — end of sequence. Generation complete! Full response: <strong>"the score is 72"</strong> ✓`
   }
 ];
 
@@ -623,7 +645,7 @@ function renderOut(step) {
   const isEOS = step.pred === '[EOS]';
   let html = `<span class="pred-tok${isEOS?' eos':''}">${step.pred}</span>`;
   if (isEOS) {
-    html += `<span class="out-done">✓ Generation complete! Full response: "2+2 is 4"</span>`;
+    html += `<span class="out-done">✓ Generation complete! Full response: "the score is 72"</span>`;
   } else if (step.sm) {
     html += `<div class="softmax-row">`;
     step.sm.forEach(s => {
