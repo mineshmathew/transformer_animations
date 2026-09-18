@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parallel Decoding — Transformer Animation</title>
+<style>
+:root {
+  --bg: #0F172A;
+  --bg2: #1E293B;
+  --bg3: #334155;
+  --txt: #E2E8F0;
+  --txt2: #94A3B8;
+  --acc: #38BDF8;
+  --acc2: #7DD3FC;
+  --grn: #4ADE80;
+  --grn2: #86EFAC;
+  --pur: #A78BFA;
+  --pur2: #C4B5FD;
+  --amb: #FCD34D;
+  --red: #F87171;
+  --bdr: rgba(255,255,255,.08);
+
+  --st: #7C3AED;
+  --st-bg: rgba(124,58,237,.12);
+  --st-bd: rgba(124,58,237,.40);
+  --st-light: #C4B5FD;
+  --rt: #059669;
+  --rt-bg: rgba(5,150,105,.12);
+  --rt-bd: rgba(5,150,105,.40);
+  --rt-light: #6EE7B7;
+  --active: #38BDF8;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:'Segoe UI',system-ui,sans-serif;
+  font-size:14px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+header{
+  width:100%;
+  max-width:1100px;
+  padding:20px 24px 0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+header h1{font-size:1.25rem;font-weight:700;color:var(--acc);}
+header p{font-size:.85rem;color:var(--txt2);}
+
+.nav{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 24px;
+  width:100%;
+  max-width:1100px;
+}
+.nav button{
+  background:var(--bg3);
+  border:1px solid var(--bdr);
+  color:var(--txt);
+  border-radius:8px;
+  padding:7px 18px;
+  cursor:pointer;
+  font-size:.85rem;
+  transition:.15s;
+}
+.nav button:hover{background:var(--bg2);border-color:var(--acc);}
+.nav button:disabled{opacity:.35;cursor:default;}
+.step-indicator{
+  flex:1;
+  text-align:center;
+  font-size:.8rem;
+  color:var(--txt2);
+}
+.dots{display:flex;gap:6px;align-items:center;}
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--bg3);
+  border:1px solid var(--bdr);
+  transition:.2s;
+  cursor:pointer;
+}
+.dot.active{background:var(--acc);}
+.dot.done{background:var(--bg3);border-color:var(--grn);}
+
+.scene{
+  width:100%;
+  max-width:1100px;
+  padding:0 24px 32px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* Step header */
+.step-hdr{
+  background:var(--bg2);
+  border:1px solid var(--bdr);
+  border-radius:12px;
+  padding:14px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.step-hdr .badge{
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  width:fit-content;
+}
+.badge-overview{background:rgba(56,189,248,.15);color:var(--acc);}
+.badge-prefill{background:rgba(74,222,128,.12);color:var(--grn);}
+.badge-parallel{background:rgba(124,58,237,.15);color:var(--st-light);}
+.step-hdr h2{font-size:1rem;font-weight:600;margin-top:4px;}
+.step-hdr p{font-size:.85rem;color:var(--txt2);line-height:1.55;}
+
+/* ========== PREFILL VIEW ========== */
+.prefill-view{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:14px;
+}
+
+.card{
+  background:var(--bg2);
+  border:1px solid var(--bdr);
+  border-radius:12px;
+  padding:14px;
+}
+.card-title{
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--txt2);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* Token strip */
+.token-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.tok{
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:.8rem;
+  font-weight:600;
+  border:1px solid var(--bdr);
+  background:var(--bg3);
+  color:var(--txt2);
+  transition:.3s;
+}
+.tok.inp{background:rgba(56,189,248,.12);color:var(--acc);border-color:rgba(56,189,248,.3);}
+.tok.gen{background:rgba(74,222,128,.12);color:var(--grn);border-color:rgba(74,222,128,.3);}
+.tok.cur{background:rgba(252,211,77,.15);color:var(--amb);border-color:rgba(252,211,77,.4);}
+
+/* Attention heatmap */
+canvas{border-radius:6px;display:block;}
+
+/* Computation blocks */
+.blk-list{display:flex;flex-direction:column;gap:6px;}
+.blk{
+  border:1px solid var(--bdr);
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:.8rem;
+  color:var(--txt2);
+  background:var(--bg3);
+  opacity:.4;
+  transition:.3s;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.blk.active{opacity:1;border-color:var(--acc);color:var(--txt);}
+.blk-icon{font-size:.9rem;}
+
+/* KV cache strip */
+.kv-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.kv-chip{
+  padding:3px 9px;
+  border-radius:5px;
+  font-size:.75rem;
+  background:rgba(56,189,248,.08);
+  border:1px solid rgba(56,189,248,.2);
+  color:var(--txt2);
+  transition:.3s;
+}
+.kv-chip.new{
+  background:rgba(56,189,248,.22);
+  border-color:var(--acc);
+  color:var(--acc);
+}
+
+/* Softmax bars */
+.sm-list{display:flex;flex-direction:column;gap:6px;}
+.sm-item{display:flex;flex-direction:column;gap:2px;}
+.sm-label{font-size:.72rem;color:var(--txt2);display:flex;justify-content:space-between;}
+.sm-label .pct{font-weight:700;}
+.sm-label .pct.top{color:var(--grn);}
+.sm-bar-bg{
+  height:8px;
+  border-radius:4px;
+  background:var(--bg3);
+  overflow:hidden;
+}
+.sm-bar-fill{
+  height:100%;
+  border-radius:4px;
+  background:var(--bg3);
+  transition:width .5s;
+}
+.sm-bar-fill.top{background:var(--grn);}
+
+/* Output */
+.out-box{
+  background:rgba(74,222,128,.07);
+  border:1px solid rgba(74,222,128,.25);
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:.85rem;
+  color:var(--grn);
+  font-weight:600;
+  text-align:center;
+  display:none;
+}
+.out-box.vis{display:block;}
+
+/* ========== PARALLEL VIEW ========== */
+.parallel-view{
+  display:none;
+  flex-direction:column;
+  gap:14px;
+}
+.parallel-view.vis{display:flex;}
+
+.shared-kv-card{
+  background:var(--bg2);
+  border:1px solid rgba(56,189,248,.3);
+  border-radius:12px;
+  padding:14px 18px;
+}
+.shared-kv-title{
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--acc);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.kv-tiles{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.kv-tile{
+  background:rgba(56,189,248,.10);
+  border:1px solid rgba(56,189,248,.3);
+  border-radius:8px;
+  padding:6px 12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  min-width:68px;
+}
+.kv-tile .kv-tok{font-size:.8rem;font-weight:700;color:var(--acc);}
+.kv-tile .kv-pos{font-size:.65rem;color:var(--txt2);}
+
+/* Fork arrows */
+.fork-connector{
+  display:flex;
+  justify-content:center;
+  gap:80px;
+  color:var(--txt2);
+  font-size:.8rem;
+  padding:4px 0;
+}
+.fork-branch{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+.fork-branch .arrow{font-size:1.1rem;}
+
+/* Parallel columns */
+.parallel-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.decode-col{
+  border-radius:12px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.decode-col.state-col{
+  background:var(--st-bg);
+  border:1px solid var(--st-bd);
+}
+.decode-col.rto-col{
+  background:var(--rt-bg);
+  border:1px solid var(--rt-bd);
+}
+.col-title{
+  font-size:.8rem;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.col-title.st{color:var(--st-light);}
+.col-title.rt{color:var(--rt-light);}
+
+/* Constraint box */
+.constraint-box{
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:.75rem;
+}
+.constraint-box.st{
+  background:rgba(124,58,237,.12);
+  border:1px dashed rgba(124,58,237,.5);
+  color:var(--st-light);
+}
+.constraint-box.rt{
+  background:rgba(5,150,105,.10);
+  border:1px dashed rgba(5,150,105,.45);
+  color:var(--rt-light);
+}
+.constraint-label{font-weight:700;margin-bottom:4px;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;}
+.constraint-toks{display:flex;gap:5px;flex-wrap:wrap;}
+.ctok{
+  padding:2px 7px;
+  border-radius:4px;
+  font-size:.75rem;
+  font-weight:600;
+}
+.ctok.st{background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);color:var(--st-light);}
+.ctok.rt{background:rgba(5,150,105,.18);border:1px solid rgba(5,150,105,.4);color:var(--rt-light);}
+
+/* Attention bars in parallel view */
+.attn-bars{display:flex;flex-direction:column;gap:5px;transition:.3s;opacity:0;}
+.attn-bars.vis{opacity:1;}
+.attn-item{display:flex;flex-direction:column;gap:2px;}
+.attn-lbl{font-size:.7rem;color:var(--txt2);display:flex;justify-content:space-between;}
+.attn-pct{font-size:.7rem;font-weight:700;}
+.attn-pct.st{color:var(--st-light);}
+.attn-pct.rt{color:var(--rt-light);}
+.attn-bar-bg{height:7px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;}
+.attn-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+.attn-bar-fill.st{background:var(--st);}
+.attn-bar-fill.rt{background:var(--rt);}
+
+/* Constrained softmax bars in parallel view */
+.cs-section{display:flex;flex-direction:column;gap:5px;transition:.3s;opacity:0;}
+.cs-section.vis{opacity:1;}
+.cs-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.cs-title.st{color:var(--st-light);}
+.cs-title.rt{color:var(--rt-light);}
+.cs-item{display:flex;flex-direction:column;gap:2px;}
+.cs-lbl{font-size:.72rem;color:var(--txt2);display:flex;justify-content:space-between;}
+.cs-pct{font-weight:700;}
+.cs-pct.top.st{color:var(--st-light);}
+.cs-pct.top.rt{color:var(--rt-light);}
+.cs-bar-bg{height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;}
+.cs-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+.cs-bar-fill.normal.st{background:rgba(124,58,237,.4);}
+.cs-bar-fill.normal.rt{background:rgba(5,150,105,.4);}
+.cs-bar-fill.top.st{background:var(--st);}
+.cs-bar-fill.top.rt{background:var(--rt);}
+
+/* Prediction chip */
+.pred-chip{
+  border-radius:8px;
+  padding:8px 12px;
+  text-align:center;
+  font-size:.85rem;
+  font-weight:700;
+  display:none;
+}
+.pred-chip.vis{display:block;}
+.pred-chip.st{
+  background:rgba(124,58,237,.2);
+  border:1px solid var(--st-bd);
+  color:var(--st-light);
+}
+.pred-chip.rt{
+  background:rgba(5,150,105,.18);
+  border:1px solid var(--rt-bd);
+  color:var(--rt-light);
+}
+
+/* Merge result */
+.merge-box{
+  background:rgba(74,222,128,.08);
+  border:1px solid rgba(74,222,128,.3);
+  border-radius:12px;
+  padding:12px 18px;
+  text-align:center;
+  font-size:.9rem;
+  font-weight:700;
+  color:var(--grn);
+  display:none;
+}
+.merge-box.vis{display:block;}
+
+/* Overview list */
+.overview-list{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.overview-list li{
+  display:flex;
+  gap:10px;
+  font-size:.85rem;
+  color:var(--txt2);
+  line-height:1.5;
+}
+.overview-list li .num{
+  min-width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--acc);
+  color:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.72rem;
+  font-weight:700;
+  flex-shrink:0;
+  margin-top:1px;
+}
+
+/* Section subhead */
+.section-sub{
+  font-size:.68rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--txt2);
+  margin-bottom:4px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Parallel Decoding — Decoder-Only Transformer</h1>
+  <p>Prompt: "Get state and RTO, KL 6" &nbsp;|&nbsp; Parallel outputs: State → <strong>Kerala</strong> &nbsp;&amp;&nbsp; RTO → <strong>idukki</strong></p>
+</header>
+
+<div class="nav">
+  <button id="prev-btn" onclick="go(-1)" disabled>← Prev</button>
+  <div class="dots" id="dots"></div>
+  <div class="step-indicator" id="step-lbl"></div>
+  <button id="next-btn" onclick="go(1)">Next →</button>
+</div>
+
+<div class="scene">
+  <div class="step-hdr" id="step-hdr">
+    <div class="badge" id="phase-badge"></div>
+    <h2 id="step-title"></h2>
+    <p id="step-desc"></p>
+  </div>
+
+  <!-- ===== PREFILL VIEW ===== -->
+  <div class="prefill-view" id="prefill-view">
+
+    <!-- Col 1: Tokens -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <div class="card-title">📥 Input Tokens</div>
+        <div class="token-row" id="tok-row"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗄 KV Cache</div>
+        <div class="kv-row" id="kv-row"></div>
+      </div>
+      <div class="card out-box" id="out-box"></div>
+    </div>
+
+    <!-- Col 2: Computation blocks -->
+    <div class="card">
+      <div class="card-title">⚙️ Computation Blocks</div>
+      <div class="blk-list">
+        <div class="blk" id="blk-embed">
+          <span class="blk-icon">🔢</span>
+          <span>Token Embedding + Positional Encoding</span>
+        </div>
+        <div class="blk" id="blk-qkv">
+          <span class="blk-icon">📐</span>
+          <span>Q, K, V Projections (W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>)</span>
+        </div>
+        <div class="blk" id="blk-attn">
+          <span class="blk-icon">👁</span>
+          <span>Causal Self-Attention (masked softmax)</span>
+        </div>
+        <div class="blk" id="blk-n1">
+          <span class="blk-icon">📊</span>
+          <span>Add &amp; Norm (residual + layer norm)</span>
+        </div>
+        <div class="blk" id="blk-ffn">
+          <span class="blk-icon">🧠</span>
+          <span>FFN (expand → GELU → project)</span>
+        </div>
+        <div class="blk" id="blk-n2">
+          <span class="blk-icon">📊</span>
+          <span>Add &amp; Norm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 3: Attention + Softmax -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card" id="attn-card">
+        <div class="card-title">🔥 Causal Attention Heatmap</div>
+        <canvas id="attn-canvas" width="280" height="200"></canvas>
+      </div>
+      <div class="card" id="sm-card">
+        <div class="card-title">📊 Next-Token Distribution</div>
+        <div class="sm-list" id="sm-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /prefill-view -->
+
+  <!-- ===== PARALLEL VIEW ===== -->
+  <div class="parallel-view" id="parallel-view">
+
+    <!-- Shared KV Cache -->
+    <div class="shared-kv-card">
+      <div class="shared-kv-title">⬡ Shared KV Cache — 6 positions from prefill (read-only)</div>
+      <div class="kv-tiles" id="kv-tiles"></div>
+    </div>
+
+    <!-- Fork connector -->
+    <div class="fork-connector">
+      <div class="fork-branch">
+        <div style="color:var(--st-light);font-weight:700;font-size:.8rem;">↙ State Decoder</div>
+        <div class="arrow" style="color:var(--st-light);">▼</div>
+      </div>
+      <div class="fork-branch">
+        <div style="color:var(--rt-light);font-weight:700;font-size:.8rem;">↘ RTO Decoder</div>
+        <div class="arrow" style="color:var(--rt-light);">▼</div>
+      </div>
+    </div>
+
+    <!-- Two decoder columns -->
+    <div class="parallel-cols">
+
+      <!-- State decoder -->
+      <div class="decode-col state-col">
+        <div class="col-title st">🔮 State Decoder</div>
+
+        <div class="constraint-box st">
+          <div class="constraint-label">Constrained Vocabulary</div>
+          <div class="constraint-toks">
+            <span class="ctok st">Kerala</span>
+            <span class="ctok st">TN</span>
+            <span class="ctok st">AP</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-sub">Attention over KV cache</div>
+          <div class="attn-bars" id="st-attn-bars"></div>
+        </div>
+
+        <div>
+          <div class="cs-title st">Constrained Softmax</div>
+          <div class="cs-section" id="st-cs"></div>
+        </div>
+
+        <div class="pred-chip st" id="st-pred">✓ Kerala</div>
+      </div>
+
+      <!-- RTO decoder -->
+      <div class="decode-col rto-col">
+        <div class="col-title rt">🗺 RTO Decoder</div>
+
+        <div class="constraint-box rt">
+          <div class="constraint-label">Constrained Vocabulary</div>
+          <div class="constraint-toks">
+            <span class="ctok rt">kochi</span>
+            <span class="ctok rt">idukki</span>
+            <span class="ctok rt">kollam</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-sub">Attention over KV cache</div>
+          <div class="attn-bars" id="rt-attn-bars"></div>
+        </div>
+
+        <div>
+          <div class="cs-title rt">Constrained Softmax</div>
+          <div class="cs-section" id="rt-cs"></div>
+        </div>
+
+        <div class="pred-chip rt" id="rt-pred">✓ idukki</div>
+      </div>
+
+    </div><!-- /parallel-cols -->
+
+    <!-- Merged result -->
+    <div class="merge-box" id="merge-box">
+      🎯 Parallel Output: &nbsp;<em>State</em> → "Kerala" &nbsp;|&nbsp; <em>RTO</em> → "idukki"
+    </div>
+
+  </div><!-- /parallel-view -->
+
+</div><!-- /scene -->
+
+<script>
+/* ========== DATA ========== */
+const INP = ['Get','state','and','RTO,','KL','6'];
+
+const A6 = [
+  [1.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+  [0.28, 0.72, 0.00, 0.00, 0.00, 0.00],
+  [0.20, 0.35, 0.45, 0.00, 0.00, 0.00],
+  [0.15, 0.25, 0.30, 0.30, 0.00, 0.00],
+  [0.12, 0.18, 0.22, 0.28, 0.20, 0.00],
+  [0.10, 0.15, 0.15, 0.25, 0.25, 0.10]
+];
+
+const STATE_ATTN  = [0.08, 0.22, 0.10, 0.15, 0.28, 0.17];
+const RTO_ATTN    = [0.06, 0.10, 0.08, 0.28, 0.30, 0.18];
+
+const STATE_PROBS = [
+  {tok:'Kerala', p:0.68, top:true},
+  {tok:'TN',     p:0.22},
+  {tok:'AP',     p:0.10}
+];
+const RTO_PROBS = [
+  {tok:'kochi',  p:0.15},
+  {tok:'idukki', p:0.64, top:true},
+  {tok:'kollam', p:0.21}
+];
+
+const SM_PREFILL = [
+  {tok:'Kerala', p:.58, top:true},
+  {tok:'Goa',    p:.15},
+  {tok:'Delhi',  p:.12},
+  {tok:'and',    p:.09},
+  {tok:'[EOS]',  p:.06}
+];
+
+/* ========== STEPS ========== */
+const STEPS = [
+  {
+    id:0, num:0,
+    phase:'overview', view:'prefill',
+    badge:'badge-overview', badgeTxt:'Overview',
+    title:'Parallel Decoding Concept',
+    desc:'Standard autoregressive decoding generates one token at a time. Parallel decoding runs multiple specialised decoder heads simultaneously — each constrained to its own vocabulary — sharing the same KV cache built during prefill.',
+    overview:true,
+    blks:[], attn:null, kv:0, newKvIdx:[], sm:[], curTok:-1
+  },
+  {
+    id:1, num:1,
+    phase:'prefill', view:'prefill',
+    badge:'badge-prefill', badgeTxt:'Prefill',
+    title:'Step 1 — Embed All 6 Input Tokens',
+    desc:'All 6 input tokens are embedded in parallel. Each gets a token embedding plus a positional encoding, producing a d_model-dimensional vector per position.',
+    blks:['embed'], attn:null, kv:0, newKvIdx:[], sm:[], curTok:-1
+  },
+  {
+    id:2, num:2,
+    phase:'prefill', view:'prefill',
+    badge:'badge-prefill', badgeTxt:'Prefill',
+    title:'Step 2 — Compute Q, K, V Projections',
+    desc:'Weight matrices W_Q, W_K, W_V project each token\'s embedding into query, key, and value vectors. These are computed for all 6 positions at once.',
+    blks:['embed','qkv'], attn:null, kv:0, newKvIdx:[], sm:[], curTok:-1
+  },
+  {
+    id:3, num:3,
+    phase:'prefill', view:'prefill',
+    badge:'badge-prefill', badgeTxt:'Prefill',
+    title:'Step 3 — Causal Self-Attention & KV Cache',
+    desc:'The 6×6 causal attention mask ensures each position only attends to previous positions (lower-triangular). K and V vectors for all 6 positions are stored in the KV cache.',
+    blks:['embed','qkv','attn','n1','ffn','n2'], attn:A6, kv:6, newKvIdx:[0,1,2,3,4,5], sm:SM_PREFILL, curTok:5
+  },
+  {
+    id:4, num:4,
+    phase:'parallel', view:'parallel',
+    badge:'badge-parallel', badgeTxt:'Parallel Decode',
+    title:'Step 4 — Fork: Two Decoder Heads',
+    desc:'The shared KV cache from prefill is handed to two independent decoder heads simultaneously. Each head has its own query vector (learnt for its task). Constrained vocabularies are applied via logit masking (−∞ for out-of-vocab tokens).',
+    showAttn:false, showProbs:false, showPred:false
+  },
+  {
+    id:5, num:5,
+    phase:'parallel', view:'parallel',
+    badge:'badge-parallel', badgeTxt:'Parallel Decode',
+    title:'Step 5 — Parallel Attention over Shared KV Cache',
+    desc:'Both decoder heads compute cross-attention against the same 6-position KV cache. The State head attends more to "state" and "KL" tokens; the RTO head focuses on "RTO," and "KL".',
+    showAttn:true, showProbs:false, showPred:false
+  },
+  {
+    id:6, num:6,
+    phase:'parallel', view:'parallel',
+    badge:'badge-parallel', badgeTxt:'Parallel Decode',
+    title:'Step 6 — Constrained Softmax (Logit Masking)',
+    desc:'Output logits outside each head\'s allowed vocabulary are set to −∞ before softmax, so probability mass is distributed only over valid tokens. State: {Kerala, TN, AP}. RTO: {kochi, idukki, kollam}.',
+    showAttn:true, showProbs:true, showPred:false
+  },
+  {
+    id:7, num:7,
+    phase:'parallel', view:'parallel',
+    badge:'badge-parallel', badgeTxt:'Parallel Decode',
+    title:'Step 7 — Predictions & Merge',
+    desc:'Each head picks its argmax. State → "Kerala" (68 %), RTO → "idukki" (64 %). Both results are available simultaneously — decoding is complete in one parallel step instead of two sequential steps.',
+    showAttn:true, showProbs:true, showPred:true
+  }
+];
+
+/* ========== STATE ========== */
+let cur = 0;
+
+/* ========== NAV ========== */
+function go(d){
+  cur = Math.max(0, Math.min(STEPS.length-1, cur+d));
+  render(STEPS[cur]);
+}
+
+/* ========== RENDER ========== */
+function render(s){
+  // nav buttons
+  document.getElementById('prev-btn').disabled = (s.id===0);
+  document.getElementById('next-btn').disabled = (s.id===STEPS.length-1);
+
+  // dots
+  const dots = document.getElementById('dots');
+  dots.innerHTML = '';
+  STEPS.forEach((st,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===s.id?' active':(i<s.id?' done':''));
+    d.onclick = ()=>{ cur=i; render(STEPS[i]); };
+    dots.appendChild(d);
+  });
+
+  // step label
+  document.getElementById('step-lbl').textContent = `Step ${s.num} / ${STEPS.length-1}`;
+
+  // header
+  const badge = document.getElementById('phase-badge');
+  badge.className = 'badge '+s.badge;
+  badge.textContent = s.badgeTxt;
+  document.getElementById('step-title').textContent = s.title;
+  document.getElementById('step-desc').textContent = s.desc;
+
+  // view switch
+  const pv = document.getElementById('prefill-view');
+  const pav = document.getElementById('parallel-view');
+  if(s.view==='prefill'){
+    pv.style.display = 'grid';
+    pav.classList.remove('vis');
+  } else {
+    pv.style.display = 'none';
+    pav.classList.add('vis');
+  }
+
+  if(s.view==='prefill') renderPrefill(s);
+  else renderParallel(s);
+}
+
+/* ===== PREFILL VIEW ===== */
+function renderPrefill(s){
+  // tokens
+  const tr = document.getElementById('tok-row');
+  tr.innerHTML = '';
+  INP.forEach((t,i)=>{
+    const span = document.createElement('span');
+    const isCur = (i===s.curTok);
+    span.className = 'tok inp' + (isCur?' cur':'');
+    span.textContent = t;
+    tr.appendChild(span);
+  });
+
+  // blocks
+  ['embed','qkv','attn','n1','ffn','n2'].forEach(b=>{
+    const el = document.getElementById('blk-'+b);
+    el.className = 'blk' + (s.blks && s.blks.includes(b)?' active':'');
+  });
+
+  // attention heatmap
+  const canvas = document.getElementById('attn-canvas');
+  if(s.attn){
+    canvas.style.display='block';
+    drawHeatmap(canvas, s.attn, INP.slice(0,s.attn.length));
+  } else {
+    canvas.style.display='none';
+  }
+
+  // KV cache
+  const kv = document.getElementById('kv-row');
+  kv.innerHTML = '';
+  for(let i=0;i<s.kv;i++){
+    const chip = document.createElement('span');
+    chip.className = 'kv-chip' + (s.newKvIdx.includes(i)?' new':'');
+    chip.textContent = INP[i];
+    kv.appendChild(chip);
+  }
+
+  // softmax
+  const sml = document.getElementById('sm-list');
+  sml.innerHTML = '';
+  if(s.sm && s.sm.length){
+    document.getElementById('sm-card').style.display='block';
+    s.sm.forEach(item=>{
+      const div = document.createElement('div');
+      div.className = 'sm-item';
+      const pct = Math.round(item.p*100);
+      div.innerHTML = `
+        <div class="sm-label">
+          <span>${item.tok}</span>
+          <span class="pct${item.top?' top':''}">${pct}%</span>
+        </div>
+        <div class="sm-bar-bg">
+          <div class="sm-bar-fill${item.top?' top':''}" style="width:${pct}%"></div>
+        </div>`;
+      sml.appendChild(div);
+    });
+  } else {
+    document.getElementById('sm-card').style.display='none';
+  }
+
+  // output
+  const ob = document.getElementById('out-box');
+  ob.classList.remove('vis');
+
+  // overview
+  if(s.overview){
+    renderOverview();
+  }
+}
+
+function renderOverview(){
+  const tr = document.getElementById('tok-row');
+  tr.innerHTML = `
+    <ul class="overview-list">
+      <li><div class="num">1</div><span>All input tokens are processed together in the <strong>prefill phase</strong> — building a KV cache for all 6 positions.</span></li>
+      <li><div class="num">2</div><span>Two specialised decoder heads are forked simultaneously. Each holds its own query vector optimised for its task.</span></li>
+      <li><div class="num">3</div><span>Both heads compute cross-attention over the <strong>shared read-only KV cache</strong> in parallel.</span></li>
+      <li><div class="num">4</div><span><strong>Logit masking</strong> sets out-of-vocabulary token logits to −∞ before softmax, enforcing constrained decoding.</span></li>
+      <li><div class="num">5</div><span>Each head picks its argmax from its restricted vocabulary — one step to get both answers.</span></li>
+    </ul>`;
+}
+
+/* ===== PARALLEL VIEW ===== */
+function renderParallel(s){
+  // KV tiles
+  const tiles = document.getElementById('kv-tiles');
+  tiles.innerHTML = '';
+  INP.forEach((tok,i)=>{
+    const tile = document.createElement('div');
+    tile.className = 'kv-tile';
+    tile.innerHTML = `<span class="kv-tok">${tok}</span><span class="kv-pos">pos ${i}</span>`;
+    tiles.appendChild(tile);
+  });
+
+  // attention bars
+  const stBar = document.getElementById('st-attn-bars');
+  const rtBar = document.getElementById('rt-attn-bars');
+  stBar.innerHTML = '';
+  rtBar.innerHTML = '';
+
+  if(s.showAttn){
+    stBar.classList.add('vis');
+    rtBar.classList.add('vis');
+    renderAttnBars(stBar, STATE_ATTN, 'st');
+    renderAttnBars(rtBar, RTO_ATTN, 'rt');
+  } else {
+    stBar.classList.remove('vis');
+    rtBar.classList.remove('vis');
+  }
+
+  // constrained softmax
+  const stCs = document.getElementById('st-cs');
+  const rtCs = document.getElementById('rt-cs');
+  stCs.innerHTML = '';
+  rtCs.innerHTML = '';
+
+  if(s.showProbs){
+    stCs.classList.add('vis');
+    rtCs.classList.add('vis');
+    renderCSBars(stCs, STATE_PROBS, 'st');
+    renderCSBars(rtCs, RTO_PROBS, 'rt');
+  } else {
+    stCs.classList.remove('vis');
+    rtCs.classList.remove('vis');
+  }
+
+  // predictions
+  const stPred = document.getElementById('st-pred');
+  const rtPred = document.getElementById('rt-pred');
+  const merge  = document.getElementById('merge-box');
+  if(s.showPred){
+    stPred.classList.add('vis');
+    rtPred.classList.add('vis');
+    merge.classList.add('vis');
+  } else {
+    stPred.classList.remove('vis');
+    rtPred.classList.remove('vis');
+    merge.classList.remove('vis');
+  }
+}
+
+function renderAttnBars(container, weights, cls){
+  const max = Math.max(...weights);
+  INP.forEach((tok,i)=>{
+    const pct = Math.round(weights[i]*100);
+    const div = document.createElement('div');
+    div.className = 'attn-item';
+    div.innerHTML = `
+      <div class="attn-lbl">
+        <span>${tok}</span>
+        <span class="attn-pct ${cls}">${pct}%</span>
+      </div>
+      <div class="attn-bar-bg">
+        <div class="attn-bar-fill ${cls}" style="width:${pct}%"></div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function renderCSBars(container, probs, cls){
+  probs.forEach(item=>{
+    const pct = Math.round(item.p*100);
+    const div = document.createElement('div');
+    div.className = 'cs-item';
+    div.innerHTML = `
+      <div class="cs-lbl">
+        <span>${item.tok}</span>
+        <span class="cs-pct${item.top?' top':''} ${cls}">${pct}%</span>
+      </div>
+      <div class="cs-bar-bg">
+        <div class="cs-bar-fill ${item.top?'top':'normal'} ${cls}" style="width:${pct}%"></div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+/* ===== HEATMAP ===== */
+function drawHeatmap(canvas, mat, labels){
+  const n = mat.length;
+  const W = canvas.width, H = canvas.height;
+  const pad = 38, cellW = (W-pad)/n, cellH = (H-pad)/n;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      const v = mat[r][c];
+      const x = pad + c*cellW, y = r*cellH;
+      if(v===0){
+        ctx.fillStyle='rgba(255,255,255,.03)';
+      } else {
+        const a = 0.1 + v*0.85;
+        ctx.fillStyle=`rgba(56,189,248,${a})`;
+      }
+      ctx.fillRect(x,y,cellW-1,cellH-1);
+      if(v>0){
+        ctx.fillStyle=v>0.4?'#000':'#E2E8F0';
+        ctx.font=`bold ${cellH*.34}px Segoe UI`;
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(v.toFixed(2), x+cellW/2, y+cellH/2);
+      }
+    }
+  }
+
+  // col labels (bottom)
+  ctx.font=`${cellH*.32}px Segoe UI`;
+  ctx.fillStyle='#94A3B8';
+  ctx.textAlign='center';
+  labels.forEach((l,i)=>{
+    ctx.fillText(l.length>4?l.slice(0,4):l, pad+i*cellW+cellW/2, n*cellH+14);
+  });
+  // row labels (left)
+  ctx.textAlign='right';
+  labels.forEach((l,i)=>{
+    ctx.fillText(l.length>4?l.slice(0,4):l, pad-4, i*cellH+cellH/2+1);
+  });
+}
+
+/* ===== INIT ===== */
+render(STEPS[0]);
+
+// keyboard nav
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+</script>
+</body>
+</html>
