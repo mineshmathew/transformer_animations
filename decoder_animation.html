@@ -116,7 +116,7 @@ body {
 /* VIZ AREA */
 .viz {
   display: grid;
-  grid-template-columns: 130px 1fr 180px;
+  grid-template-columns: 130px 1fr 220px;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -187,25 +187,40 @@ body {
   display: flex; flex-direction: column; gap: 6px;
   overflow-y: auto;
 }
-.kv-legend { display:flex; gap:8px; margin-bottom:2px; }
-.kv-legend span { font-family:var(--mono); font-size:10px; }
-.kv-entries { display:flex; flex-direction:column; gap:4px; }
-.kv-row {
-  display: grid; grid-template-columns: 26px 1fr 1fr; gap: 3px;
-  align-items: center;
-}
-.kv-row.new-kv .kv-bar { animation: kvGlow .6s ease; }
 @keyframes kvGlow { 0%{box-shadow:0 0 10px var(--active)} 100%{box-shadow:none} }
-.kv-pos { font-family:var(--mono); font-size:9px; color:var(--t4); }
-.kv-bar {
-  height: 20px; border-radius: 3px; padding: 0 5px;
-  display: flex; align-items: center;
-  font-family: var(--mono); font-size: 8.5px; font-weight: 600;
-  white-space: nowrap; overflow: hidden;
-}
-.kb { background:rgba(29,78,216,.10); border:1px solid rgba(29,78,216,.35); color:#1E40AF; }
-.vb { background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.35); color:#5B21B6; }
+.kv-entries { display:flex; flex-direction:column; gap:5px; }
 .kv-empty { font-size:11px; color:var(--t4); padding:8px 0; }
+/* Enhanced KV entry blocks */
+.kv-entry-block {
+  border:1px solid var(--border); border-radius:var(--r);
+  background:var(--s2); padding:5px 6px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.kv-entry-block.new-kv { animation:kvGlow .6s ease; }
+.kv-entry-hdr { display:flex; align-items:center; gap:5px; }
+.kv-pos-label { font-family:var(--mono); font-size:9px; color:var(--t3); }
+.kv-tok-label { font-family:var(--mono); font-size:9px; font-weight:700; color:var(--t2); }
+.kv-vec-row { display:flex; align-items:center; gap:3px; }
+.kv-vec-tag { font-family:var(--mono); font-size:8px; font-weight:700; padding:1px 3px; border-radius:2px; flex-shrink:0; }
+.kv-vec-tag.k { background:rgba(29,78,216,.12); color:#1E40AF; }
+.kv-vec-tag.v { background:rgba(124,58,237,.12); color:#5B21B6; }
+.kv-floats { display:flex; gap:2px; flex-wrap:wrap; }
+.kv-float { font-family:var(--mono); font-size:8px; padding:0 3px; border-radius:2px; background:var(--s3); color:var(--t2); border:1px solid var(--border); }
+/* Query vector display (decode phase) */
+.qry-section {
+  border:1px solid rgba(217,119,6,.3); border-radius:var(--r);
+  background:rgba(217,119,6,.06); padding:6px 7px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.qry-header { font-family:var(--mono); font-size:9px; font-weight:700; color:#B45309; margin-bottom:1px; }
+.qry-floats { display:flex; gap:2px; flex-wrap:wrap; margin-bottom:2px; }
+.q-float { font-family:var(--mono); font-size:8px; padding:0 3px; border-radius:2px; background:rgba(217,119,6,.12); color:#92400E; border:1px solid rgba(217,119,6,.25); }
+.qk-scores { display:flex; flex-direction:column; gap:2px; }
+.qk-score-row { display:flex; align-items:center; gap:3px; font-family:var(--mono); font-size:8px; }
+.qk-tok { color:var(--t3); min-width:28px; }
+.qk-dot { color:var(--t4); }
+.qk-val { font-weight:700; color:#B45309; }
+.qk-arrow { font-family:var(--mono); font-size:8px; color:var(--t3); text-align:center; margin:2px 0; }
 
 /* OUTPUT PANEL */
 .out-panel {
@@ -328,11 +343,7 @@ body {
 
     <!-- KV Cache -->
     <div class="kv-panel">
-      <div class="panel-title">KV Cache</div>
-      <div class="kv-legend">
-        <span style="color:#1E40AF">■ K</span>
-        <span style="color:#5B21B6">■ V</span>
-      </div>
+      <div class="panel-title">KV Cache <span style="font-size:8px;color:var(--t4);font-family:var(--mono)">&#x2014; K (blue) &amp; V (purple)</span></div>
       <div class="kv-entries" id="kv-entries">
         <div class="kv-empty">Cache empty</div>
       </div>
@@ -393,6 +404,26 @@ const A6 = [
 ];
 
 const KV_LABELS = ['DEL:','98','H1NI','Delhi↑','H1N1↑','98↑'];
+
+/* K and V vectors per token position (prefill + generated, d=4 for illustration) */
+const KV_VECTORS = [
+  { tok:'DEL:',  k:[ 0.82,-0.31, 0.57, 0.14], v:[ 0.44, 0.70,-0.21, 0.38] },
+  { tok:'98',    k:[-0.23, 0.65, 0.41,-0.55], v:[ 0.15,-0.42, 0.80, 0.27] },
+  { tok:'H1NI',  k:[ 0.31, 0.18,-0.74, 0.62], v:[-0.53, 0.39, 0.25, 0.66] },
+  { tok:'Delhi', k:[-0.45, 0.73,-0.18, 0.51], v:[ 0.63,-0.28, 0.44, 0.72] },
+  { tok:'H1N1',  k:[ 0.58,-0.14, 0.82,-0.35], v:[-0.22, 0.68,-0.39, 0.55] },
+  { tok:'98↑',   k:[-0.31, 0.47, 0.65,-0.52], v:[ 0.38, 0.22,-0.71, 0.44] },
+];
+
+/* Query vectors and pre-softmax Q·K scores for each decode step (keyed by step id) */
+const DECODE_QUERIES = {
+  /* step 5: Q(Delhi pos3) attends to 4 KV slots → softmax≈[.30,.16,.44,.10] */
+  5: { tok:'Delhi',  q:[-0.18, 0.74,-0.42, 0.55], scores:[+1.1,+0.5,+1.5, 0.0] },
+  /* step 6: Q(H1N1 pos4) attends to 5 KV slots → softmax≈[.14,.52,.16,.10,.08] */
+  6: { tok:'H1N1',   q:[-0.55, 0.81,-0.22, 0.36], scores:[+0.6,+1.9,+0.7,+0.2, 0.0] },
+  /* step 7: Q(98 pos5) attends to 6 KV slots → softmax≈[.10,.30,.14,.16,.20,.10] */
+  7: { tok:'"98"',   q:[ 0.12,-0.64, 0.48, 0.73], scores:[ 0.0,+1.1,+0.3,+0.5,+0.7, 0.0] },
+};
 
 const SM_PREFILL = [
   {tok:'Delhi',p:.65,top:true},{tok:'Mumbai',p:.16},{tok:'DEL',p:.10},{tok:'Chennai',p:.06},{tok:'…',p:.03}
@@ -604,12 +635,36 @@ function renderKV(step) {
   const el = document.getElementById('kv-entries');
   if (!step.kv) { el.innerHTML = '<div class="kv-empty">Cache empty</div>'; return; }
   el.innerHTML = '';
+
+  /* Query vector section — shown for decode steps only */
+  if (step.phase === 'decode' && DECODE_QUERIES[step.id]) {
+    const qd = DECODE_QUERIES[step.id];
+    const qFmt = v => `<span class="q-float">${v>=0?'+':''}${v.toFixed(2)}</span>`;
+    const scoresHtml = KV_LABELS.slice(0, qd.scores.length).map((lbl,i) => {
+      const s = qd.scores[i];
+      return `<div class="qk-score-row"><span class="qk-tok">${lbl}</span><span class="qk-dot">·K${i}→</span><span class="qk-val">${s>=0?'+':''}${s.toFixed(1)}</span></div>`;
+    }).join('');
+    const qSec = document.createElement('div');
+    qSec.className = 'qry-section';
+    qSec.innerHTML =
+      `<div class="qry-header">Q (${qd.tok})</div>` +
+      `<div class="qry-floats">${qd.q.map(qFmt).join('')}</div>` +
+      `<div class="qk-scores">${scoresHtml}</div>` +
+      `<div class="qk-arrow">↓ softmax → attn weights</div>`;
+    el.appendChild(qSec);
+  }
+
+  const fmt = v => `<span class="kv-float">${v>=0?'+':''}${v.toFixed(2)}</span>`;
   for (let i = 0; i < step.kv; i++) {
     const isNew = step.newKvIdx.includes(i);
-    const row = document.createElement('div');
-    row.className = 'kv-row' + (isNew ? ' new-kv' : '');
-    row.innerHTML = `<span class="kv-pos">p${i}</span><div class="kv-bar kb">K[${KV_LABELS[i]}]</div><div class="kv-bar vb">V[${KV_LABELS[i]}]</div>`;
-    el.appendChild(row);
+    const kv = KV_VECTORS[i];
+    const entry = document.createElement('div');
+    entry.className = 'kv-entry-block' + (isNew ? ' new-kv' : '');
+    entry.innerHTML =
+      `<div class="kv-entry-hdr"><span class="kv-pos-label">p${i}</span><span class="kv-tok-label">${kv.tok}</span></div>` +
+      `<div class="kv-vec-row"><span class="kv-vec-tag k">K</span><div class="kv-floats">${kv.k.map(fmt).join('')}</div></div>` +
+      `<div class="kv-vec-row"><span class="kv-vec-tag v">V</span><div class="kv-floats">${kv.v.map(fmt).join('')}</div></div>`;
+    el.appendChild(entry);
   }
 }
 
@@ -619,7 +674,7 @@ function renderOut(step) {
   const isEOS = step.pred === '[EOS]';
   let html = `<span class="pred-tok${isEOS?' eos':''}">${step.pred}</span>`;
   if (isEOS) {
-    html += `<span class="out-done">✓ Generation complete! Full response: "Hyderabad H1N1 120"</span>`;
+    html += `<span class="out-done">✓ Generation complete! Full response: "Delhi H1N1 98"</span>`;
   } else if (step.sm) {
     html += `<div class="softmax-row">`;
     step.sm.forEach(s => {
