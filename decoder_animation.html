@@ -357,58 +357,54 @@ body {
 </div>
 
 <script>
-const INP = ['HYD','H1N1,','120','hospitalised'];
-const GEN = ['Hyderabad','H1N1','120'];
+const INP = ['DEL:','98','H1NI'];
+const GEN = ['Delhi','H1N1','98'];
 const ALL = [...INP,...GEN];
 
-// Prefill: 4×4 lower-triangular causal mask
+// Prefill: 3×3 lower-triangular causal mask
+const A3 = [
+  [1.00, 0.00, 0.00],
+  [0.28, 0.72, 0.00],
+  [0.20, 0.28, 0.52]
+];
+// Decode step 1 — "Delhi"(gen) at pos 3; Q_3 attends to all
 const A4 = [
   [1.00, 0.00, 0.00, 0.00],
-  [0.32, 0.68, 0.00, 0.00],
-  [0.20, 0.40, 0.40, 0.00],
-  [0.12, 0.28, 0.30, 0.30]
+  [0.28, 0.72, 0.00, 0.00],
+  [0.20, 0.28, 0.52, 0.00],
+  [0.30, 0.16, 0.44, 0.10]
 ];
-// Decode step 1 — "Hyderabad"(gen) at pos 4 attends to all
+// Decode step 2 — "H1N1"(gen) at pos 4
 const A5 = [
   [1.00, 0.00, 0.00, 0.00, 0.00],
-  [0.32, 0.68, 0.00, 0.00, 0.00],
-  [0.20, 0.40, 0.40, 0.00, 0.00],
-  [0.12, 0.28, 0.30, 0.30, 0.00],
-  [0.38, 0.22, 0.18, 0.22, 0.00]
+  [0.28, 0.72, 0.00, 0.00, 0.00],
+  [0.20, 0.28, 0.52, 0.00, 0.00],
+  [0.30, 0.16, 0.44, 0.10, 0.00],
+  [0.14, 0.52, 0.16, 0.10, 0.08]
 ];
-// Decode step 2 — "H1N1"(gen) at pos 5
+// Decode step 3 — "98"(gen) at pos 5
 const A6 = [
   [1.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-  [0.32, 0.68, 0.00, 0.00, 0.00, 0.00],
-  [0.20, 0.40, 0.40, 0.00, 0.00, 0.00],
-  [0.12, 0.28, 0.30, 0.30, 0.00, 0.00],
-  [0.38, 0.22, 0.18, 0.22, 0.00, 0.00],
-  [0.12, 0.48, 0.16, 0.14, 0.10, 0.00]
-];
-// Decode step 3 — "120"(gen) at pos 6
-const A7 = [
-  [1.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-  [0.32, 0.68, 0.00, 0.00, 0.00, 0.00, 0.00],
-  [0.20, 0.40, 0.40, 0.00, 0.00, 0.00, 0.00],
-  [0.12, 0.28, 0.30, 0.30, 0.00, 0.00, 0.00],
-  [0.38, 0.22, 0.18, 0.22, 0.00, 0.00, 0.00],
-  [0.12, 0.48, 0.16, 0.14, 0.10, 0.00, 0.00],
-  [0.10, 0.16, 0.44, 0.14, 0.08, 0.08, 0.00]
+  [0.28, 0.72, 0.00, 0.00, 0.00, 0.00],
+  [0.20, 0.28, 0.52, 0.00, 0.00, 0.00],
+  [0.30, 0.16, 0.44, 0.10, 0.00, 0.00],
+  [0.14, 0.52, 0.16, 0.10, 0.08, 0.00],
+  [0.10, 0.30, 0.14, 0.16, 0.20, 0.10]
 ];
 
-const KV_LABELS = ['HYD','H1N1,','120','hospitalised','Hyderabad↑','H1N1↑','120↑'];
+const KV_LABELS = ['DEL:','98','H1NI','Delhi↑','H1N1↑','98↑'];
 
 const SM_PREFILL = [
-  {tok:'Hyderabad',p:.62,top:true},{tok:'Delhi',p:.14},{tok:'HYD',p:.12},{tok:'Mumbai',p:.08},{tok:'…',p:.04}
+  {tok:'Delhi',p:.65,top:true},{tok:'Mumbai',p:.16},{tok:'DEL',p:.10},{tok:'Chennai',p:.06},{tok:'…',p:.03}
 ];
 const SM_D1 = [
-  {tok:'H1N1',p:.55,top:true},{tok:'COVID',p:.22},{tok:',',p:.12},{tok:'virus',p:.07},{tok:'…',p:.04}
+  {tok:'H1N1',p:.58,top:true},{tok:'COVID',p:.20},{tok:',',p:.12},{tok:'virus',p:.07},{tok:'…',p:.03}
 ];
 const SM_D2 = [
-  {tok:'120',p:.58,top:true},{tok:'cases',p:.20},{tok:'patients',p:.14},{tok:'people',p:.05},{tok:'…',p:.03}
+  {tok:'98',p:.62,top:true},{tok:'cases',p:.18},{tok:'patients',p:.12},{tok:'people',p:.05},{tok:'…',p:.03}
 ];
 const SM_D3 = [
-  {tok:'[EOS]',p:.78,top:true},{tok:'.',p:.11},{tok:'cases',p:.06},{tok:',',p:.03},{tok:'…',p:.02}
+  {tok:'[EOS]',p:.75,top:true},{tok:'.',p:.12},{tok:'cases',p:.07},{tok:',',p:.04},{tok:'…',p:.02}
 ];
 
 const STEPS = [
@@ -422,59 +418,59 @@ const STEPS = [
   },
   {
     id:1, phase:'prefill', num:1,
-    toks:['HYD','H1N1,','120','hospitalised'], types:['inp','inp','inp','inp'], curTok:-1,
+    toks:['DEL:','98','H1NI'], types:['inp','inp','inp'], curTok:-1,
     blks:['embed'], attn:null, hlRow:-1,
     kv:0, newKvIdx:[],
     pred:null, sm:null,
-    expl:`<span class="hp">Prefill begins.</span> All 4 input tokens — <strong>"HYD"</strong>, <strong>"H1N1,"</strong>, <strong>"120"</strong>, <strong>"hospitalised"</strong> — enter simultaneously. Each is converted to a token ID and looked up in the embedding matrix; positional encodings are added at positions 0–3.`
+    expl:`<span class="hp">Prefill begins.</span> All 3 input tokens — <strong>"DEL:"</strong>, <strong>"98"</strong>, <strong>"H1NI"</strong> — enter simultaneously. Each is converted to a token ID and looked up in the embedding matrix; positional encodings are added at positions 0–2.`
   },
   {
     id:2, phase:'prefill', num:2,
-    toks:['HYD','H1N1,','120','hospitalised'], types:['inp','inp','inp','inp'], curTok:-1,
+    toks:['DEL:','98','H1NI'], types:['inp','inp','inp'], curTok:-1,
     blks:['qkv'], attn:null, hlRow:-1,
     kv:0, newKvIdx:[],
     pred:null, sm:null,
-    expl:`Four sets of linear projections run in parallel: <span class="hq">Q</span> = W<sub>Q</sub>·x, <span class="hk">K</span> = W<sub>K</sub>·x, <span class="hv">V</span> = W<sub>V</sub>·x. All 4 token embeddings produce their own <span class="hq">Query</span>, <span class="hk">Key</span>, and <span class="hv">Value</span> vectors in one batched matrix multiply.`
+    expl:`Three sets of linear projections run in parallel: <span class="hq">Q</span> = W<sub>Q</sub>·x, <span class="hk">K</span> = W<sub>K</sub>·x, <span class="hv">V</span> = W<sub>V</span>·x. All 3 token embeddings produce their own <span class="hq">Query</span>, <span class="hk">Key</span>, and <span class="hv">Value</span> vectors in one batched matrix multiply.`
   },
   {
     id:3, phase:'prefill', num:3,
-    toks:['HYD','H1N1,','120','hospitalised'], types:['inp','inp','inp','inp'], curTok:-1,
-    blks:['attn','n1'], attn:A4, hlRow:-1,
-    kv:4, newKvIdx:[0,1,2,3],
+    toks:['DEL:','98','H1NI'], types:['inp','inp','inp'], curTok:-1,
+    blks:['attn','n1'], attn:A3, hlRow:-1,
+    kv:3, newKvIdx:[0,1,2],
     pred:null, sm:null,
-    expl:`<strong>Causal self-attention</strong> (4×4 matrix): each token attends only to itself and earlier tokens (lower-triangular mask). All 4 <span class="hk">K</span> and <span class="hv">V</span> vectors are written to the <strong>KV cache</strong>. "H1N1," (pos 1) has strong self-attention — the disease code is the dominant signal in this epidemiology query.`
+    expl:`<strong>Causal self-attention</strong> (3×3 matrix): each token attends only to itself and earlier tokens (lower-triangular mask). All 3 <span class="hk">K</span> and <span class="hv">V</span> vectors are written to the <strong>KV cache</strong>. "H1NI" (pos 2) has the strongest self-attention — the misspelled disease code is still the dominant signal for the structured extraction.`
   },
   {
     id:4, phase:'prefill', num:4,
-    toks:['HYD','H1N1,','120','hospitalised'], types:['inp','inp','inp','inp'], curTok:3,
-    blks:['ffn','n2','out'], attn:A4, hlRow:3,
-    kv:4, newKvIdx:[],
-    pred:'Hyderabad', sm:SM_PREFILL,
-    expl:`FFN + layer norm runs on all 4 positions in parallel. Only the <strong>last token's output</strong> (pos 3, "hospitalised") is passed to the output head. Softmax over the vocabulary — the model maps "HYD" to its full city name and predicts <strong>"Hyderabad"</strong> as the first generated token.`
+    toks:['DEL:','98','H1NI'], types:['inp','inp','inp'], curTok:2,
+    blks:['ffn','n2','out'], attn:A3, hlRow:2,
+    kv:3, newKvIdx:[],
+    pred:'Delhi', sm:SM_PREFILL,
+    expl:`FFN + layer norm runs on all 3 positions in parallel. Only the <strong>last token's output</strong> (pos 2, "H1NI") is passed to the output head. Softmax over the vocabulary — the model maps "DEL:" to its full city name and predicts <strong>"Delhi"</strong> as the first generated token.`
   },
   {
     id:5, phase:'decode', num:5,
-    toks:['HYD','H1N1,','120','hospitalised','Hyderabad'], types:['inp','inp','inp','inp','gen'], curTok:4,
-    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A5, hlRow:4,
-    kv:5, newKvIdx:[4],
+    toks:['DEL:','98','H1NI','Delhi'], types:['inp','inp','inp','gen'], curTok:3,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A4, hlRow:3,
+    kv:4, newKvIdx:[3],
     pred:'H1N1', sm:SM_D1,
-    expl:`<span class="hd">Decode step 1.</span> <strong>"Hyderabad"</strong> appended at pos 4. Its <span class="hq">Q</span><sub>4</sub> attends to all 5 cached keys (highlighted row) — strongly weighting "HYD" which anchored the place. <span class="hk">K</span><sub>4</sub>, <span class="hv">V</span><sub>4</sub> added to cache. Model predicts <strong>"H1N1"</strong>.`
+    expl:`<span class="hd">Decode step 1.</span> <strong>"Delhi"</strong> appended at pos 3. Its <span class="hq">Q</span><sub>3</sub> attends to all 4 cached keys (highlighted row) — strongly weighting "H1NI" (pos 2) to identify the disease next. <span class="hk">K</span><sub>3</sub>, <span class="hv">V</span><sub>3</sub> added to cache. Model predicts <strong>"H1N1"</strong>.`
   },
   {
     id:6, phase:'decode', num:6,
-    toks:['HYD','H1N1,','120','hospitalised','Hyderabad','H1N1'], types:['inp','inp','inp','inp','gen','gen'], curTok:5,
-    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A6, hlRow:5,
-    kv:6, newKvIdx:[5],
-    pred:'120', sm:SM_D2,
-    expl:`<span class="hd">Decode step 2.</span> <strong>"H1N1"</strong> at pos 5 attends to all 6 cached positions — attending strongly to the "H1N1," disease token in the input. The model now targets the numeric case count and predicts <strong>"120"</strong>.`
+    toks:['DEL:','98','H1NI','Delhi','H1N1'], types:['inp','inp','inp','gen','gen'], curTok:4,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A5, hlRow:4,
+    kv:5, newKvIdx:[4],
+    pred:'98', sm:SM_D2,
+    expl:`<span class="hd">Decode step 2.</span> <strong>"H1N1"</strong> at pos 4 attends to all 5 cached positions — focusing strongly on the "98" cases token (pos 1) in the input. The model now targets the numeric case count and predicts <strong>"98"</strong>.`
   },
   {
     id:7, phase:'decode', num:7,
-    toks:['HYD','H1N1,','120','hospitalised','Hyderabad','H1N1','120'], types:['inp','inp','inp','inp','gen','gen','gen'], curTok:6,
-    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A7, hlRow:6,
-    kv:7, newKvIdx:[6],
+    toks:['DEL:','98','H1NI','Delhi','H1N1','98'], types:['inp','inp','inp','gen','gen','gen'], curTok:5,
+    blks:['embed','qkv','attn','n1','ffn','n2','out'], attn:A6, hlRow:5,
+    kv:6, newKvIdx:[5],
     pred:'[EOS]', sm:SM_D3,
-    expl:`<span class="hd">Decode step 3.</span> <strong>"120"</strong> at pos 6 attends to all 7 cached positions — heavily weighting the input "120" token. The structured response "Hyderabad H1N1 120" is complete — the model predicts <strong>[EOS]</strong>. Generation complete! Full response: <strong>"Hyderabad H1N1 120"</strong> ✓`
+    expl:`<span class="hd">Decode step 3.</span> <strong>"98"</strong> at pos 5 attends to all 6 cached positions — distributing attention across the full context. The structured response "Delhi H1N1 98" is complete — the model predicts <strong>[EOS]</strong>. Generation complete! Full response: <strong>"Delhi H1N1 98"</strong> ✓`
   }
 ];
 

@@ -83,9 +83,9 @@ footer{
     <div class="card-icon">🔁</div>
     <span class="card-badge badge-seq">Sequential</span>
     <h2>Autoregressive Decoding</h2>
-    <p>Watch prefill build a 4&times;4 causal attention matrix and KV cache, then
-       see tokens generated one-by-one: <em>"HYD H1N1, 120 hospitalised"</em>
-       &rarr; <em>"Hyderabad H1N1 120"</em>.</p>
+    <p>Watch prefill build a 3&times;3 causal attention matrix and KV cache, then
+       see tokens generated one-by-one: <em>"DEL: 98 H1NI"</em>
+       &rarr; <em>"Delhi H1N1 98"</em>.</p>
     <div class="steps-pill">
       <span class="pill">Prefill</span>
       <span class="pill">KV Cache</span>
@@ -101,8 +101,8 @@ footer{
     <span class="card-badge badge-par">Parallel</span>
     <h2>Parallel Constrained Decoding</h2>
     <p>Same prompt, <em>three</em> decoder heads running simultaneously after
-       prefill — Disease &rarr; <em>H1N1</em>, Place &rarr; <em>Hyderabad</em>,
-       Cases &rarr; <em>120</em> — each constrained via logit masking.</p>
+       prefill — Disease &rarr; <em>H1N1</em>, Place &rarr; <em>Delhi</em>,
+       Cases &rarr; <em>98</em> — each constrained via logit masking.</p>
     <div class="steps-pill">
       <span class="pill">Shared KV Cache</span>
       <span class="pill">Logit Masking</span>

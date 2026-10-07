@@ -260,7 +260,7 @@ canvas{border-radius:6px;display:block;}
 
 <header>
   <h1>Parallel Decoding — Decoder-Only Transformer</h1>
-  <p>Prompt: "HYD H1N1, 120 hospitalised" &nbsp;|&nbsp; Parallel outputs: Disease → <strong>H1N1</strong> &nbsp;|&nbsp; Place → <strong>Hyderabad</strong> &nbsp;|&nbsp; Cases → <strong>120</strong></p>
+  <p>Prompt: "DEL: 98 H1NI" &nbsp;|&nbsp; Parallel outputs: Disease → <strong>H1N1</strong> &nbsp;|&nbsp; Place → <strong>Delhi</strong> &nbsp;|&nbsp; Cases → <strong>98</strong></p>
 </header>
 
 <div class="nav">
@@ -369,9 +369,9 @@ canvas{border-radius:6px;display:block;}
         <div class="constraint-box pl">
           <div class="constraint-label">Constrained Vocabulary</div>
           <div class="constraint-toks">
-            <span class="ctok pl">Hyderabad</span>
-            <span class="ctok pl">Mumbai</span>
             <span class="ctok pl">Delhi</span>
+            <span class="ctok pl">Mumbai</span>
+            <span class="ctok pl">Hyderabad</span>
           </div>
         </div>
         <div>
@@ -382,7 +382,7 @@ canvas{border-radius:6px;display:block;}
           <div class="cs-title pl">Constrained Softmax</div>
           <div class="cs-section" id="pl-cs"></div>
         </div>
-        <div class="pred-chip pl" id="pl-pred">✓ Hyderabad</div>
+        <div class="pred-chip pl" id="pl-pred">✓ Delhi</div>
       </div>
 
       <!-- Cases decoder -->
@@ -391,9 +391,9 @@ canvas{border-radius:6px;display:block;}
         <div class="constraint-box ca">
           <div class="constraint-label">Constrained Vocabulary</div>
           <div class="constraint-toks">
+            <span class="ctok ca">98</span>
+            <span class="ctok ca">45</span>
             <span class="ctok ca">120</span>
-            <span class="ctok ca">450</span>
-            <span class="ctok ca">89</span>
           </div>
         </div>
         <div>
@@ -404,13 +404,13 @@ canvas{border-radius:6px;display:block;}
           <div class="cs-title ca">Constrained Softmax</div>
           <div class="cs-section" id="ca-cs"></div>
         </div>
-        <div class="pred-chip ca" id="ca-pred">✓ 120</div>
+        <div class="pred-chip ca" id="ca-pred">✓ 98</div>
       </div>
 
     </div><!-- /parallel-cols -->
 
     <div class="merge-box" id="merge-box">
-      🎯 Parallel Output: &nbsp;<em>Disease</em> → "H1N1" &nbsp;|&nbsp; <em>Place</em> → "Hyderabad" &nbsp;|&nbsp; <em>Cases</em> → "120"
+      🎯 Parallel Output: &nbsp;<em>Disease</em> → "H1N1" &nbsp;|&nbsp; <em>Place</em> → "Delhi" &nbsp;|&nbsp; <em>Cases</em> → "98"
     </div>
 
   </div><!-- /parallel-view -->
@@ -419,42 +419,41 @@ canvas{border-radius:6px;display:block;}
 
 <script>
 /* ===== DATA ===== */
-const INP = ['HYD','H1N1,','120','hospitalised'];
+const INP = ['DEL:','98','H1NI'];
 
-const A4 = [
-  [1.00, 0.00, 0.00, 0.00],
-  [0.32, 0.68, 0.00, 0.00],
-  [0.20, 0.40, 0.40, 0.00],
-  [0.12, 0.28, 0.30, 0.30]
+const A3 = [
+  [1.00, 0.00, 0.00],
+  [0.28, 0.72, 0.00],
+  [0.20, 0.28, 0.52]
 ];
 
-/* Attention each decoder head pays to the 4 KV positions */
-const DISEASE_ATTN = [0.10, 0.48, 0.16, 0.26];
-const PLACE_ATTN   = [0.52, 0.22, 0.12, 0.14];
-const CASES_ATTN   = [0.14, 0.18, 0.52, 0.16];
+/* Attention each decoder head pays to the 3 KV positions */
+const DISEASE_ATTN = [0.08, 0.20, 0.72];  // strong on H1NI (pos 2)
+const PLACE_ATTN   = [0.68, 0.18, 0.14];  // strong on DEL: (pos 0)
+const CASES_ATTN   = [0.12, 0.70, 0.18];  // strong on 98   (pos 1)
 
 const DISEASE_PROBS = [
-  {tok:'H1N1',   p:0.70, top:true},
+  {tok:'H1N1',   p:0.72, top:true},
   {tok:'COVID',  p:0.18},
-  {tok:'Dengue', p:0.12}
+  {tok:'Dengue', p:0.10}
 ];
 const PLACE_PROBS = [
-  {tok:'Hyderabad', p:0.72, top:true},
+  {tok:'Delhi',     p:0.70, top:true},
   {tok:'Mumbai',    p:0.18},
-  {tok:'Delhi',     p:0.10}
+  {tok:'Hyderabad', p:0.12}
 ];
 const CASES_PROBS = [
-  {tok:'120', p:0.65, top:true},
-  {tok:'450', p:0.22},
-  {tok:'89',  p:0.13}
+  {tok:'98',  p:0.68, top:true},
+  {tok:'45',  p:0.20},
+  {tok:'120', p:0.12}
 ];
 
 const SM_PREFILL = [
-  {tok:'Hyderabad',p:.60,top:true},
-  {tok:'Delhi',    p:.15},
-  {tok:'H1N1',     p:.12},
-  {tok:'Mumbai',   p:.08},
-  {tok:'…',        p:.05}
+  {tok:'Delhi',   p:.65,top:true},
+  {tok:'Mumbai',  p:.16},
+  {tok:'H1N1',    p:.10},
+  {tok:'Chennai', p:.06},
+  {tok:'…',       p:.03}
 ];
 
 /* ===== STEPS ===== */
@@ -472,8 +471,8 @@ const STEPS = [
     id:1, num:1,
     phase:'prefill', view:'prefill',
     badge:'badge-prefill', badgeTxt:'Prefill',
-    title:'Step 1 — Embed All 4 Input Tokens',
-    desc:'All 4 input tokens are embedded in parallel. Each gets a token embedding plus a positional encoding, producing a d_model-dimensional vector per position.',
+    title:'Step 1 — Embed All 3 Input Tokens',
+    desc:'All 3 input tokens are embedded in parallel. Each gets a token embedding plus a positional encoding, producing a d_model-dimensional vector per position.',
     blks:['embed'], attn:null, kv:0, newKvIdx:[], sm:[], curTok:-1
   },
   {
@@ -481,7 +480,7 @@ const STEPS = [
     phase:'prefill', view:'prefill',
     badge:'badge-prefill', badgeTxt:'Prefill',
     title:'Step 2 — Compute Q, K, V Projections',
-    desc:'Weight matrices W_Q, W_K, W_V project each token embedding into query, key, and value vectors — all 4 positions at once in a single batched matrix multiply.',
+    desc:'Weight matrices W_Q, W_K, W_V project each token embedding into query, key, and value vectors — all 3 positions at once in a single batched matrix multiply.',
     blks:['embed','qkv'], attn:null, kv:0, newKvIdx:[], sm:[], curTok:-1
   },
   {
@@ -489,8 +488,8 @@ const STEPS = [
     phase:'prefill', view:'prefill',
     badge:'badge-prefill', badgeTxt:'Prefill',
     title:'Step 3 — Causal Self-Attention & KV Cache',
-    desc:'The 4×4 causal attention mask (lower-triangular) lets each token attend only to prior positions. K and V vectors for all 4 positions are stored in the shared KV cache — it will be read by all 3 decoder heads.',
-    blks:['embed','qkv','attn','n1','ffn','n2'], attn:A4, kv:4, newKvIdx:[0,1,2,3], sm:SM_PREFILL, curTok:3
+    desc:'The 3×3 causal attention mask (lower-triangular) lets each token attend only to prior positions. K and V vectors for all 3 positions are stored in the shared KV cache — it will be read by all 3 decoder heads.',
+    blks:['embed','qkv','attn','n1','ffn','n2'], attn:A3, kv:3, newKvIdx:[0,1,2], sm:SM_PREFILL, curTok:2
   },
   {
     id:4, num:4,
@@ -505,7 +504,7 @@ const STEPS = [
     phase:'parallel', view:'parallel',
     badge:'badge-parallel', badgeTxt:'Parallel Decode',
     title:'Step 5 — Parallel Attention over Shared KV Cache',
-    desc:'All three heads compute cross-attention over the same 4-position KV cache simultaneously. Disease head focuses on "H1N1," (pos 1); Place head focuses on "HYD" (pos 0); Cases head focuses on "120" (pos 2).',
+    desc:'All three heads compute cross-attention over the same 3-position KV cache simultaneously. Disease head focuses on "H1NI" (pos 2); Place head focuses on "DEL:" (pos 0); Cases head focuses on "98" (pos 1).',
     showAttn:true, showProbs:false, showPred:false
   },
   {
@@ -513,7 +512,7 @@ const STEPS = [
     phase:'parallel', view:'parallel',
     badge:'badge-parallel', badgeTxt:'Parallel Decode',
     title:'Step 6 — Constrained Softmax (Logit Masking)',
-    desc:'Logits for out-of-vocabulary tokens are set to −∞ before softmax, so probability mass is confined to each head\'s allowed set. Disease: {H1N1, COVID, Dengue}. Place: {Hyderabad, Mumbai, Delhi}. Cases: {120, 450, 89}.',
+    desc:'Logits for out-of-vocabulary tokens are set to −∞ before softmax, so probability mass is confined to each head\'s allowed set. Disease: {H1N1, COVID, Dengue}. Place: {Delhi, Mumbai, Hyderabad}. Cases: {98, 45, 120}.',
     showAttn:true, showProbs:true, showPred:false
   },
   {
@@ -521,7 +520,7 @@ const STEPS = [
     phase:'parallel', view:'parallel',
     badge:'badge-parallel', badgeTxt:'Parallel Decode',
     title:'Step 7 — Predictions & Merge',
-    desc:'Each head picks its argmax: Disease → "H1N1" (70 %), Place → "Hyderabad" (72 %), Cases → "120" (65 %). All three results are ready simultaneously — one parallel step replaces three sequential decode steps.',
+    desc:'Each head picks its argmax: Disease → "H1N1" (72 %), Place → "Delhi" (70 %), Cases → "98" (68 %). All three results are ready simultaneously — one parallel step replaces three sequential decode steps.',
     showAttn:true, showProbs:true, showPred:true
   }
 ];
