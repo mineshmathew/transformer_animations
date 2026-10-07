@@ -3,31 +3,31 @@
 
 <style>
 :root {
-  --bg: #070B16;
-  --s1: #0D1424;
-  --s2: #131C30;
-  --s3: #1A2540;
-  --border: #1E3054;
+  --bg: #FFFFFF;
+  --s1: #F8FAFC;
+  --s2: #F1F5F9;
+  --s3: #E2E8F0;
+  --border: #CBD5E1;
 
   --tok-in: #7C3AED;
-  --tok-in-bg: rgba(124,58,237,.15);
-  --tok-in-bd: rgba(124,58,237,.4);
+  --tok-in-bg: rgba(124,58,237,.10);
+  --tok-in-bd: rgba(124,58,237,.35);
   --tok-gen: #059669;
-  --tok-gen-bg: rgba(5,150,105,.15);
-  --tok-gen-bd: rgba(5,150,105,.4);
+  --tok-gen-bg: rgba(5,150,105,.10);
+  --tok-gen-bd: rgba(5,150,105,.35);
 
-  --q: #F59E0B;
-  --k: #3B82F6;
-  --v: #8B5CF6;
+  --q: #D97706;
+  --k: #1D4ED8;
+  --v: #7C3AED;
 
-  --active: #38BDF8;
-  --active-bg: rgba(56,189,248,.12);
-  --active-glow: rgba(56,189,248,.35);
+  --active: #0284C7;
+  --active-bg: rgba(2,132,199,.10);
+  --active-glow: rgba(2,132,199,.20);
 
-  --t1: #E2E8F0;
-  --t2: #94A3B8;
-  --t3: #475569;
-  --t4: #2D3F55;
+  --t1: #0F172A;
+  --t2: #475569;
+  --t3: #64748B;
+  --t4: #94A3B8;
 
   --mono: 'JetBrains Mono', monospace;
   --sans: 'Inter', system-ui, sans-serif;
@@ -69,12 +69,12 @@ body {
   padding: 3px 8px;
   border-radius: 20px;
   background: var(--tok-in-bg);
-  color: #C4B5FD;
+  color: #5B21B6;
   border: 1px solid var(--tok-in-bd);
   transition: all .4s;
 }
-.phase-pill.decode { background: var(--tok-gen-bg); color: #6EE7B7; border-color: var(--tok-gen-bd); }
-.phase-pill.overview { background: var(--active-bg); color: var(--active); border-color: rgba(56,189,248,.4); }
+.phase-pill.decode { background: var(--tok-gen-bg); color: #047857; border-color: var(--tok-gen-bd); }
+.phase-pill.overview { background: var(--active-bg); color: var(--active); border-color: rgba(2,132,199,.4); }
 .hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
 .step-ctr { font-family: var(--mono); font-size: 11px; color: var(--t2); white-space: nowrap; }
 .prog-track { height: 2px; background: var(--s3); border-radius: 1px; }
@@ -100,8 +100,8 @@ body {
   padding: 4px 9px; border-radius: var(--r); border: 1px solid transparent;
   transition: all .35s;
 }
-.tok.inp { background: var(--tok-in-bg); color: #C4B5FD; border-color: var(--tok-in-bd); }
-.tok.gen { background: var(--tok-gen-bg); color: #6EE7B7; border-color: var(--tok-gen-bd); }
+.tok.inp { background: var(--tok-in-bg); color: #5B21B6; border-color: var(--tok-in-bd); }
+.tok.gen { background: var(--tok-gen-bg); color: #047857; border-color: var(--tok-gen-bd); }
 .tok.cur { box-shadow: 0 0 0 2px var(--active), 0 0 12px var(--active-glow); }
 .tok.fade-in { animation: fadeUp .4s ease forwards; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(-6px) scale(.9)} to{opacity:1;transform:none} }
@@ -151,7 +151,7 @@ body {
 .blk-name { font-family: var(--mono); font-size: 10px; font-weight: 700; display: block; color: var(--t2); }
 .blk.on .blk-name { color: var(--active); }
 .blk-sub { font-size: 8.5px; color: var(--t4); margin-top: 2px; }
-.blk.on .blk-sub { color: rgba(56,189,248,.7); }
+.blk.on .blk-sub { color: rgba(2,132,199,.85); }
 .blk-arrow { text-align:center; color:var(--t4); font-size:11px; padding:2px 0; }
 @media(max-width:680px){ .blk-arrow{display:none;} .blk{font-size:9px;padding:5px;} }
 
@@ -165,9 +165,9 @@ body {
   text-align: center; font-family: var(--mono); font-size: 11px; font-weight: 700;
   padding: 4px 2px; border-radius: 4px;
 }
-.qc { background: rgba(245,158,11,.2); color: #FCD34D; }
-.kc { background: rgba(59,130,246,.2); color: #93C5FD; }
-.vc { background: rgba(139,92,246,.2); color: #C4B5FD; }
+.qc { background: rgba(217,119,6,.15); color: #92400E; }
+.kc { background: rgba(29,78,216,.12); color: #1E40AF; }
+.vc { background: rgba(124,58,237,.12); color: #5B21B6; }
 
 /* ATTENTION PANEL */
 .attn-panel {
@@ -203,8 +203,8 @@ body {
   font-family: var(--mono); font-size: 8.5px; font-weight: 600;
   white-space: nowrap; overflow: hidden;
 }
-.kb { background:rgba(59,130,246,.2); border:1px solid rgba(59,130,246,.4); color:#93C5FD; }
-.vb { background:rgba(139,92,246,.2); border:1px solid rgba(139,92,246,.4); color:#C4B5FD; }
+.kb { background:rgba(29,78,216,.10); border:1px solid rgba(29,78,216,.35); color:#1E40AF; }
+.vb { background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.35); color:#5B21B6; }
 .kv-empty { font-size:11px; color:var(--t4); padding:8px 0; }
 
 /* OUTPUT PANEL */
@@ -221,23 +221,23 @@ body {
 .pred-tok {
   font-family: var(--mono); font-size: 15px; font-weight: 700;
   padding: 5px 12px; border-radius: var(--r);
-  background: var(--tok-gen-bg); color: #34D399; border: 1px solid var(--tok-gen-bd);
+  background: var(--tok-gen-bg); color: #047857; border: 1px solid var(--tok-gen-bd);
   animation: popIn .4s cubic-bezier(.34,1.56,.64,1);
 }
-.pred-tok.eos { background:var(--active-bg); color:var(--active); border-color:rgba(56,189,248,.4); }
+.pred-tok.eos { background:var(--active-bg); color:var(--active); border-color:rgba(2,132,199,.4); }
 @keyframes popIn { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
-.out-done { color:#34D399; font-size:12px; font-weight:600; }
+.out-done { color:#047857; font-size:12px; font-weight:600; }
 
 /* SOFTMAX BARS */
 .softmax-row { display:flex; gap:6px; align-items:flex-end; }
 .sm-item { display:flex; flex-direction:column; align-items:center; gap:2px; }
 .sm-lbl { font-family:var(--mono); font-size:8px; color:var(--t2); }
-.sm-bar { width:24px; height:40px; background:var(--s3); border-radius:3px; position:relative; overflow:hidden; }
+.sm-bar { width:24px; height:40px; background:var(--s3); border-radius:3px; position:relative; overflow:hidden; border:1px solid var(--border); }
 .sm-fill {
   position:absolute; bottom:0; left:0; right:0; border-radius:2px;
-  background: linear-gradient(to top,#059669,#34D399); transition:height .5s ease;
+  background: linear-gradient(to top,#047857,#059669); transition:height .5s ease;
 }
-.sm-fill.top { background: linear-gradient(to top,#0EA5E9,#38BDF8); }
+.sm-fill.top { background: linear-gradient(to top,#0369A1,#0284C7); }
 
 /* FOOTER */
 .footer {
@@ -251,11 +251,11 @@ body {
   margin-bottom: 10px; min-height: 56px;
 }
 .expl strong { color: var(--t1); }
-.hp { color: #C4B5FD; font-weight:600; }
-.hd { color: #6EE7B7; font-weight:600; }
-.hq { color: #FCD34D; font-weight:700; font-family:var(--mono); }
-.hk { color: #93C5FD; font-weight:700; font-family:var(--mono); }
-.hv { color: #C4B5FD; font-weight:700; font-family:var(--mono); }
+.hp { color: #5B21B6; font-weight:600; }
+.hd { color: #047857; font-weight:600; }
+.hq { color: #B45309; font-weight:700; font-family:var(--mono); }
+.hk { color: #1E40AF; font-weight:700; font-family:var(--mono); }
+.hv { color: #5B21B6; font-weight:700; font-family:var(--mono); }
 .ctrl { display:flex; align-items:center; justify-content:center; gap:8px; }
 .btn {
   background: var(--s3); color: var(--t1); border: 1px solid var(--border);
@@ -319,10 +319,10 @@ body {
         <canvas id="attn-canvas"></canvas>
       </div>
       <div id="attn-legend" style="display:flex;gap:10px;align-items:center;font-size:9px;color:var(--t3);font-family:var(--mono);flex-wrap:wrap;">
-        <span>■ <span style="color:#0D1B2A">0.0</span></span>
-        <span>■ <span style="color:#1E40AF">0.5</span></span>
-        <span>■ <span style="color:#38BDF8">1.0</span></span>
-        <span style="color:#4A1515">■ masked</span>
+        <span><span style="color:#BFDBFE">■</span> 0.0</span>
+        <span><span style="color:#3B82F6">■</span> 0.5</span>
+        <span><span style="color:#0369A1">■</span> 1.0</span>
+        <span><span style="color:#FCA5A5">■</span> <span style="color:#991B1B">masked</span></span>
       </div>
     </div>
 
@@ -330,8 +330,8 @@ body {
     <div class="kv-panel">
       <div class="panel-title">KV Cache</div>
       <div class="kv-legend">
-        <span style="color:#93C5FD">■ K</span>
-        <span style="color:#C4B5FD">■ V</span>
+        <span style="color:#1E40AF">■ K</span>
+        <span style="color:#5B21B6">■ V</span>
       </div>
       <div class="kv-entries" id="kv-entries">
         <div class="kv-empty">Cache empty</div>
@@ -497,11 +497,11 @@ function drawAttn(step) {
   canvas.width = sz; canvas.height = sz;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = '#070B16';
+  ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, sz, sz);
 
   if (!step.attn) {
-    ctx.fillStyle = '#1E3054';
+    ctx.fillStyle = '#94A3B8';
     ctx.font = '11px Inter';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -521,15 +521,15 @@ function drawAttn(step) {
       const x = PAD_L + c * cell;
       const y = PAD_T + r * cell;
       const val = mat[r][c];
-      ctx.fillStyle = c > r ? '#12080A' : lerp('#0D1B2A', '#38BDF8', val);
+      ctx.fillStyle = c > r ? '#FEF2F2' : lerp('#DBEAFE', '#0369A1', val);
       ctx.fillRect(x, y, cell - 1, cell - 1);
       if (r === step.hlRow) {
-        ctx.strokeStyle = 'rgba(56,189,248,.7)';
+        ctx.strokeStyle = 'rgba(2,132,199,.8)';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(x + .75, y + .75, cell - 2.5, cell - 2.5);
       }
       if (val > 0.01 && cell >= 24) {
-        ctx.fillStyle = val > 0.5 ? 'rgba(0,0,0,.8)' : 'rgba(148,163,184,.85)';
+        ctx.fillStyle = val > 0.55 ? 'rgba(255,255,255,.9)' : 'rgba(15,23,42,.8)';
         ctx.font = `${fontSize}px JetBrains Mono`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -543,17 +543,17 @@ function drawAttn(step) {
   ctx.textBaseline = 'middle';
   for (let i = 0; i < n; i++) {
     const y = PAD_T + i * cell + cell / 2;
-    ctx.fillStyle = i === step.hlRow ? '#38BDF8' : i < INP.length ? '#A78BFA' : '#6EE7B7';
+    ctx.fillStyle = i === step.hlRow ? '#0284C7' : i < INP.length ? '#6D28D9' : '#047857';
     ctx.fillText(labels[i], PAD_L - 4, y);
   }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   for (let i = 0; i < n; i++) {
     const x = PAD_L + i * cell + cell / 2;
-    ctx.fillStyle = i < INP.length ? '#A78BFA' : '#6EE7B7';
+    ctx.fillStyle = i < INP.length ? '#6D28D9' : '#047857';
     ctx.fillText(labels[i], x, PAD_T - 3);
   }
-  ctx.fillStyle = '#2D3F55';
+  ctx.fillStyle = '#94A3B8';
   ctx.font = '8px Inter';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
