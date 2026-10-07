@@ -139,6 +139,52 @@ canvas{border-radius:6px;display:block;}
 }
 .kv-chip.new{background:rgba(2,132,199,.18);border-color:var(--acc);color:var(--acc);}
 
+/* Enhanced KV entry (prefill view) */
+.kv-row{flex-direction:column !important;gap:8px !important;}
+.kv-entry{
+  border:1px solid rgba(2,132,199,.25);border-radius:8px;padding:8px 10px;
+  background:rgba(2,132,199,.04);transition:.3s;
+}
+.kv-entry.new{border-color:var(--acc);background:rgba(2,132,199,.10);}
+.kv-entry-tok{font-size:.78rem;font-weight:700;color:var(--acc);margin-bottom:5px;}
+.kv-vec-row{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.kv-vec-label{
+  font-size:.63rem;font-weight:700;padding:1px 4px;border-radius:3px;flex-shrink:0;
+}
+.kv-vec-label.k{background:rgba(29,78,216,.15);color:#1D4ED8;}
+.kv-vec-label.v{background:rgba(124,58,237,.15);color:#7C3AED;}
+.kv-vec-vals{display:flex;gap:3px;flex-wrap:wrap;}
+.kv-val{
+  font-size:.62rem;font-family:monospace;padding:1px 4px;border-radius:3px;
+  background:var(--bg3);color:var(--txt2);border:1px solid var(--bdr);
+}
+
+/* Query vector & Q·K scores in parallel decoder columns */
+.query-box{border-radius:8px;padding:8px 10px;font-size:.75rem;display:none;}
+.query-box.vis{display:block;}
+.query-box.ds{background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);}
+.query-box.pl{background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.25);}
+.query-box.ca{background:rgba(217,119,6,.07);border:1px solid rgba(217,119,6,.25);}
+.query-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.query-lbl.ds{color:var(--ds-light);}
+.query-lbl.pl{color:var(--pl-light);}
+.query-lbl.ca{color:var(--ca-light);}
+.query-vec-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
+.q-val{font-size:.64rem;font-family:monospace;padding:1px 5px;border-radius:3px;border:1px solid var(--bdr);}
+.q-val.ds{background:rgba(124,58,237,.12);color:var(--ds-light);}
+.q-val.pl{background:rgba(8,145,178,.10);color:var(--pl-light);}
+.q-val.ca{background:rgba(217,119,6,.10);color:var(--ca-light);}
+.qk-lbl{font-size:.65rem;color:var(--txt2);margin-bottom:3px;}
+.qk-row{display:flex;flex-direction:column;gap:3px;}
+.qk-item{display:flex;align-items:center;gap:4px;}
+.qk-tok{font-size:.65rem;color:var(--txt2);min-width:34px;}
+.qk-dot{font-size:.62rem;color:var(--txt2);}
+.qk-score{font-family:monospace;font-size:.65rem;font-weight:700;min-width:30px;}
+.qk-score.ds{color:var(--ds-light);}
+.qk-score.pl{color:var(--pl-light);}
+.qk-score.ca{color:var(--ca-light);}
+.softmax-arrow{text-align:center;font-size:.72rem;color:var(--txt2);margin:5px 0 3px;}
+
 .sm-list{display:flex;flex-direction:column;gap:6px;}
 .sm-item{display:flex;flex-direction:column;gap:2px;}
 .sm-label{font-size:.72rem;color:var(--txt2);display:flex;justify-content:space-between;}
@@ -162,8 +208,8 @@ canvas{border-radius:6px;display:block;}
 .kv-tiles{display:flex;flex-wrap:wrap;gap:8px;}
 .kv-tile{
   background:rgba(56,189,248,.10);border:1px solid rgba(56,189,248,.3);
-  border-radius:8px;padding:6px 12px;display:flex;flex-direction:column;
-  align-items:center;gap:2px;min-width:68px;
+  border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:4px;min-width:160px;
 }
 .kv-tile .kv-tok{font-size:.8rem;font-weight:700;color:var(--acc);}
 .kv-tile .kv-pos{font-size:.65rem;color:var(--txt2);}
@@ -320,7 +366,7 @@ canvas{border-radius:6px;display:block;}
   <div class="parallel-view" id="parallel-view">
 
     <div class="shared-kv-card">
-      <div class="shared-kv-title">⬡ Shared KV Cache — 4 positions from prefill (read-only)</div>
+      <div class="shared-kv-title">⬡ Shared KV Cache — 3 positions from prefill (read-only)</div>
       <div class="kv-tiles" id="kv-tiles"></div>
     </div>
 
@@ -352,6 +398,7 @@ canvas{border-radius:6px;display:block;}
             <span class="ctok ds">Dengue</span>
           </div>
         </div>
+        <div class="query-box ds" id="ds-query-box"></div>
         <div>
           <div class="section-sub">Attention over KV cache</div>
           <div class="attn-bars" id="ds-attn-bars"></div>
@@ -374,6 +421,7 @@ canvas{border-radius:6px;display:block;}
             <span class="ctok pl">Hyderabad</span>
           </div>
         </div>
+        <div class="query-box pl" id="pl-query-box"></div>
         <div>
           <div class="section-sub">Attention over KV cache</div>
           <div class="attn-bars" id="pl-attn-bars"></div>
@@ -396,6 +444,7 @@ canvas{border-radius:6px;display:block;}
             <span class="ctok ca">120</span>
           </div>
         </div>
+        <div class="query-box ca" id="ca-query-box"></div>
         <div>
           <div class="section-sub">Attention over KV cache</div>
           <div class="attn-bars" id="ca-attn-bars"></div>
@@ -455,6 +504,27 @@ const SM_PREFILL = [
   {tok:'Chennai', p:.06},
   {tok:'…',       p:.03}
 ];
+
+/* K and V vectors stored per input token in the KV cache (d=4 for illustration) */
+const KV_VECTORS = [
+  { tok:'DEL:',  k:[ 0.82,-0.31, 0.57, 0.14], v:[ 0.44, 0.70,-0.21, 0.38] },
+  { tok:'98',    k:[-0.23, 0.65, 0.41,-0.55], v:[ 0.15,-0.42, 0.80, 0.27] },
+  { tok:'H1NI',  k:[ 0.31, 0.18,-0.74, 0.62], v:[-0.53, 0.39, 0.25, 0.66] },
+];
+
+/* Task-specific query vectors for each decoder head */
+const QUERY_VECS = {
+  ds:{ label:'Q ("disease")', vals:[ 0.15,-0.62, 0.89,-0.20] },
+  pl:{ label:'Q ("place")',   vals:[ 0.71, 0.23,-0.34, 0.55] },
+  ca:{ label:'Q ("cases")',   vals:[-0.18, 0.84, 0.47,-0.11] },
+};
+
+/* Q·K unnormalized scores (pre-softmax) — chosen to match DISEASE/PLACE/CASES_ATTN */
+const QK_SCORES = {
+  ds:[-1.8,-0.4, 2.1],   // softmax → [0.08, 0.20, 0.72]
+  pl:[ 2.0, 0.1,-0.5],   // softmax → [0.68, 0.18, 0.14]
+  ca:[-0.5, 1.9, 0.2],   // softmax → [0.12, 0.70, 0.18]
+};
 
 /* ===== STEPS ===== */
 const STEPS = [
@@ -581,10 +651,15 @@ function renderPrefill(s){
   const kv=document.getElementById('kv-row');
   kv.innerHTML='';
   for(let i=0;i<s.kv;i++){
-    const chip=document.createElement('span');
-    chip.className='kv-chip'+(s.newKvIdx.includes(i)?' new':'');
-    chip.textContent=INP[i];
-    kv.appendChild(chip);
+    const entry=document.createElement('div');
+    entry.className='kv-entry'+(s.newKvIdx.includes(i)?' new':'');
+    const fmt=v=>`<span class="kv-val">${v>=0?'+':''}${v.toFixed(2)}</span>`;
+    const kVals=KV_VECTORS[i].k.map(fmt).join('');
+    const vVals=KV_VECTORS[i].v.map(fmt).join('');
+    entry.innerHTML=`<div class="kv-entry-tok">${INP[i]} <span style="font-size:.6rem;color:var(--txt2);font-weight:400">pos ${i}</span></div>`+
+      `<div class="kv-vec-row"><span class="kv-vec-label k">K</span><div class="kv-vec-vals">${kVals}</div></div>`+
+      `<div class="kv-vec-row"><span class="kv-vec-label v">V</span><div class="kv-vec-vals">${vVals}</div></div>`;
+    kv.appendChild(entry);
   }
 
   const sml=document.getElementById('sm-list');
@@ -604,7 +679,7 @@ function renderPrefill(s){
 function renderOverview(){
   document.getElementById('tok-row').innerHTML=`
     <ul class="overview-list">
-      <li><div class="num">1</div><span>All 4 input tokens are processed together in the <strong>prefill phase</strong> — building a KV cache for all positions.</span></li>
+      <li><div class="num">1</div><span>All 3 input tokens are processed together in the <strong>prefill phase</strong> — building a KV cache (K and V vectors per position) for all positions.</span></li>
       <li><div class="num">2</div><span>Three specialised decoder heads are forked simultaneously: Disease, Place, and Cases.</span></li>
       <li><div class="num">3</div><span>All three heads compute cross-attention over the <strong>shared read-only KV cache</strong> in parallel.</span></li>
       <li><div class="num">4</div><span><strong>Logit masking</strong> sets out-of-vocabulary token logits to −∞ before softmax, enforcing constrained decoding per head.</span></li>
@@ -624,9 +699,18 @@ function renderParallel(s){
   INP.forEach((tok,i)=>{
     const tile=document.createElement('div');
     tile.className='kv-tile';
-    tile.innerHTML=`<span class="kv-tok">${tok}</span><span class="kv-pos">pos ${i}</span>`;
+    const fmt=v=>`<span class="kv-val">${v>=0?'+':''}${v.toFixed(2)}</span>`;
+    const kVals=KV_VECTORS[i].k.map(fmt).join('');
+    const vVals=KV_VECTORS[i].v.map(fmt).join('');
+    tile.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><span class="kv-tok">${tok}</span><span class="kv-pos">pos ${i}</span></div>`+
+      `<div class="kv-vec-row"><span class="kv-vec-label k">K</span><div class="kv-vec-vals">${kVals}</div></div>`+
+      `<div class="kv-vec-row"><span class="kv-vec-label v">V</span><div class="kv-vec-vals">${vVals}</div></div>`;
     tiles.appendChild(tile);
   });
+
+  const dsQBox=document.getElementById('ds-query-box');
+  const plQBox=document.getElementById('pl-query-box');
+  const caQBox=document.getElementById('ca-query-box');
 
   const dsBar=document.getElementById('ds-attn-bars');
   const plBar=document.getElementById('pl-attn-bars');
@@ -634,11 +718,16 @@ function renderParallel(s){
   dsBar.innerHTML=''; plBar.innerHTML=''; caBar.innerHTML='';
 
   if(s.showAttn){
+    dsQBox.classList.add('vis'); plQBox.classList.add('vis'); caQBox.classList.add('vis');
+    renderQueryBox(dsQBox,QUERY_VECS.ds,QK_SCORES.ds,'ds');
+    renderQueryBox(plQBox,QUERY_VECS.pl,QK_SCORES.pl,'pl');
+    renderQueryBox(caQBox,QUERY_VECS.ca,QK_SCORES.ca,'ca');
     dsBar.classList.add('vis'); plBar.classList.add('vis'); caBar.classList.add('vis');
     renderAttnBars(dsBar,DISEASE_ATTN,'ds');
     renderAttnBars(plBar,PLACE_ATTN,'pl');
     renderAttnBars(caBar,CASES_ATTN,'ca');
   } else {
+    dsQBox.classList.remove('vis'); plQBox.classList.remove('vis'); caQBox.classList.remove('vis');
     dsBar.classList.remove('vis'); plBar.classList.remove('vis'); caBar.classList.remove('vis');
   }
 
@@ -665,6 +754,23 @@ function renderParallel(s){
   } else {
     dsPred.classList.remove('vis'); plPred.classList.remove('vis'); caPred.classList.remove('vis'); merge.classList.remove('vis');
   }
+}
+
+function renderQueryBox(container,vecData,scores,cls){
+  const fmt=v=>`<span class="q-val ${cls}">${v>=0?'+':''}${v.toFixed(2)}</span>`;
+  const valsHtml=vecData.vals.map(fmt).join('');
+  const scoresHtml=INP.map((tok,i)=>{
+    const sc=scores[i];
+    return `<div class="qk-item"><span class="qk-tok">${tok}</span>`+
+      `<span class="qk-dot">· K${i} →</span>`+
+      `<span class="qk-score ${cls}">${sc>=0?'+':''}${sc.toFixed(1)}</span></div>`;
+  }).join('');
+  container.innerHTML=
+    `<div class="query-lbl ${cls}">${vecData.label}</div>`+
+    `<div class="query-vec-row">${valsHtml}</div>`+
+    `<div class="qk-lbl">Q · Kᵢ (raw scores):</div>`+
+    `<div class="qk-row">${scoresHtml}</div>`+
+    `<div class="softmax-arrow">↓ softmax → attention weights</div>`;
 }
 
 function renderAttnBars(container,weights,cls){
