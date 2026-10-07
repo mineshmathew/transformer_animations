@@ -83,9 +83,9 @@ footer{
     <div class="card-icon">🔁</div>
     <span class="card-badge badge-seq">Sequential</span>
     <h2>Autoregressive Decoding</h2>
-    <p>Watch prefill build a 6&times;6 causal attention matrix and KV cache, then
-       see tokens generated one-by-one: <em>"Get state and RTO, KL 6"</em>
-       &rarr; <em>"Kerala and Idukki"</em>.</p>
+    <p>Watch prefill build a 4&times;4 causal attention matrix and KV cache, then
+       see tokens generated one-by-one: <em>"HYD H1N1, 120 hospitalised"</em>
+       &rarr; <em>"Hyderabad H1N1 120"</em>.</p>
     <div class="steps-pill">
       <span class="pill">Prefill</span>
       <span class="pill">KV Cache</span>
@@ -100,14 +100,14 @@ footer{
     <div class="card-icon">⚡</div>
     <span class="card-badge badge-par">Parallel</span>
     <h2>Parallel Constrained Decoding</h2>
-    <p>Same prompt, two decoder heads running <em>simultaneously</em> after
-       prefill — each constrained to its own vocabulary via logit masking.
-       State &rarr; <em>Kerala</em> &amp; RTO &rarr; <em>idukki</em> in one step.</p>
+    <p>Same prompt, <em>three</em> decoder heads running simultaneously after
+       prefill — Disease &rarr; <em>H1N1</em>, Place &rarr; <em>Hyderabad</em>,
+       Cases &rarr; <em>120</em> — each constrained via logit masking.</p>
     <div class="steps-pill">
       <span class="pill">Shared KV Cache</span>
       <span class="pill">Logit Masking</span>
       <span class="pill">Constrained Softmax</span>
-      <span class="pill">Parallel Heads</span>
+      <span class="pill">3 Parallel Heads</span>
     </div>
     <span class="cta">Open animation &rarr;</span>
   </a>
